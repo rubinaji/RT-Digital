@@ -1,11 +1,12 @@
 /*==================================================
-   RT DIGITAL - MODUL PENAGIHAN (GENERATE TAGIHAN)
+   RT DIGITAL - MODUL PENAGIHAN (SISTEM TUNGGAKAN)
 ==================================================*/
 
+// Data diubah menggunakan angka "tunggakan" agar bisa dihitung
 let dataTagihan = [
-    { blok: "Blok A-01", penghuni: "Bpk. Budi Santoso", statusBayar: "Lunas", periode: "Lunas s/d Juli 2026" },
-    { blok: "Blok A-02", penghuni: "Belum ada penghuni", statusBayar: "Kosong", periode: "-" },
-    { blok: "Blok A-03", penghuni: "Ibu Siti Aminah", statusBayar: "Belum Bayar", periode: "Tagihan Juli 2026" }
+    { blok: "Blok A-01", penghuni: "Bpk. Budi Santoso", statusRumah: "Ditempati", tunggakan: 0 },
+    { blok: "Blok A-02", penghuni: "Belum ada penghuni", statusRumah: "Kosong", tunggakan: 0 },
+    { blok: "Blok A-03", penghuni: "Ibu Siti Aminah", statusRumah: "Dikontrak", tunggakan: 3 } // Contoh nunggak 3 bulan
 ];
 
 function PenagihanPage() {
@@ -37,27 +38,40 @@ function loadPenagihanData() {
         wadahBtnGen.innerHTML = ``;
     }
 
-    // Fungsi Super Admin: Bikin tagihan massal untuk bulan baru
+    // Fungsi Super Admin: Tambah tunggakan 1 bulan ke semua warga (Kecuali rumah kosong)
     window.generateTagihan = function() {
-        if(confirm("Buat tagihan baru untuk bulan ini? Seluruh warga yang rumahnya Ditempati/Dikontrak akan diset menjadi 'Belum Bayar'.")) {
+        if(confirm("Buat tagihan baru untuk bulan ini? (Tunggakan warga akan bertambah 1 bulan otomatis)")) {
             dataTagihan.forEach(warga => {
-                // Rumah kosong gak usah ditagih di sini (sesuai aturan)
-                if (warga.statusBayar !== "Kosong") {
-                    warga.statusBayar = "Belum Bayar";
-                    warga.periode = "Tagihan Baru Bulan Ini";
+                if (warga.statusRumah !== "Kosong") {
+                    warga.tunggakan += 1;
                 }
             });
             render();
-            alert("Mantap! Tagihan bulan ini berhasil disebarkan ke seluruh warga.");
+            alert("Mantap! Tagihan bulan ini sudah masuk ke catatan warga.");
         }
     }
 
-    // Fungsi Konfirmasi Pembayaran Kas
+    // Fungsi Pembayaran Dinamis (Bisa bayar cicil)
     window.bayarTagihan = function(index) {
-        if(confirm(`Konfirmasi pelunasan kas untuk ${dataTagihan[index].blok}?`)) {
-            dataTagihan[index].statusBayar = "Lunas";
-            dataTagihan[index].periode = "Lunas s/d Bulan Ini";
-            render();
+        let warga = dataTagihan[index];
+        
+        // Munculkan Pop-up untuk input jumlah bulan yang mau dibayar
+        let bayarBerapa = prompt(`Bapak/Ibu ${warga.penghuni} (${warga.blok}) menunggak ${warga.tunggakan} bulan.\n\nMau dibayar berapa bulan sekarang? (Ketik angka)`, "1");
+        
+        // Validasi input
+        if (bayarBerapa !== null && bayarBerapa !== "") {
+            let jmlBayar = parseInt(bayarBerapa);
+            
+            if (isNaN(jmlBayar) || jmlBayar <= 0) {
+                alert("Masukkan angka yang benar ya, Bos!");
+            } else if (jmlBayar > warga.tunggakan) {
+                alert(`Lho, dia cuma nunggak ${warga.tunggakan} bulan. Masa bayar ${jmlBayar} bulan? 😂`);
+            } else {
+                // Kurangi tunggakan sesuai yang dibayar
+                warga.tunggakan -= jmlBayar;
+                alert(`Berhasil! Pembayaran ${jmlBayar} bulan untuk ${warga.blok} sudah dicatat.\nSisa tunggakan sekarang: ${warga.tunggakan} bulan.`);
+                render();
+            }
         }
     }
 
@@ -65,26 +79,41 @@ function loadPenagihanData() {
         listContainer.innerHTML = "";
         
         dataTagihan.forEach((item, index) => {
-            let statusColor = item.statusBayar === 'Lunas' ? '#16a34a' : (item.statusBayar === 'Kosong' ? '#64748b' : '#dc2626');
-            let statusBg = item.statusBayar === 'Lunas' ? '#dcfce7' : (item.statusBayar === 'Kosong' ? '#f1f5f9' : '#fef2f2');
-            
-            // 🔒 Tombol Bayar HANYA muncul kalau statusnya Belum Bayar & perannya Admin/Penagih
-            let btnBayar = ``;
-            if (item.statusBayar === 'Belum Bayar' && (currentRole === 'admin' || currentRole === 'penagih' || currentRole === 'bendahara')) {
-                btnBayar = `<button onclick="bayarTagihan(${index})" style="padding: 8px 15px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💵 Bayar</button>`;
-            } else {
-                btnBayar = `<span style="font-size: 0.8rem; color: #64748b;">${item.periode}</span>`;
+            let statusBadge = ``;
+            let btnAksi = ``;
+            let borderStyle = ``;
+
+            // LOGIKA WARNA DAN STATUS TUNGGAKAN
+            if (item.statusRumah === 'Kosong') {
+                statusBadge = `<span style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">Rumah Kosong</span>`;
+                btnAksi = `<span style="font-size: 0.8rem; color: #64748b;">- Tidak Ditagih -</span>`;
+            } 
+            else if (item.tunggakan === 0) {
+                statusBadge = `<span style="background: #dcfce7; color: #16a34a; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">Lunas</span>`;
+                btnAksi = `<span style="font-size: 0.85rem; color: #16a34a; font-weight: bold;">Lunas Bulan Ini</span>`;
+                borderStyle = `border-left: 4px solid #16a34a;`;
+            } 
+            else {
+                statusBadge = `<span style="background: #fef2f2; color: #dc2626; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">Nunggak ${item.tunggakan} Bulan</span>`;
+                borderStyle = `border-left: 4px solid #dc2626;`;
+                
+                // Cek Role: Cuma Admin, Penagih, dan Bendahara yang bisa klik Bayar
+                if (currentRole === 'admin' || currentRole === 'penagih' || currentRole === 'bendahara') {
+                    btnAksi = `<button onclick="bayarTagihan(${index})" style="padding: 8px 15px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💵 Bayar</button>`;
+                } else {
+                    btnAksi = `<span style="font-size: 0.85rem; color: #dc2626; font-weight: bold;">Segera Lunasi!</span>`;
+                }
             }
 
             listContainer.innerHTML += `
-                <div class="card" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                <div class="card" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; ${borderStyle}">
                     <div>
                         <h3 style="margin: 0 0 5px 0; color: #1e293b;">${item.blok}</h3>
                         <p style="margin: 0 0 8px 0; color: #64748b; font-size: 0.9rem;">${item.penghuni}</p>
-                        <span style="background: ${statusBg}; color: ${statusColor}; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">${item.statusBayar}</span>
+                        ${statusBadge}
                     </div>
                     <div>
-                        ${btnBayar}
+                        ${btnAksi}
                     </div>
                 </div>
             `;
