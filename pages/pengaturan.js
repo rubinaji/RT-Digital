@@ -26,8 +26,12 @@ function PengaturanPage() {
 
             <div class="card" style="padding: 20px; margin-bottom: 15px;">
                 <h4 style="margin: 0 0 15px 0; color: #0f172a;">💰 Tarif Master Kas</h4>
-                <label style="font-size: 0.85rem; color: #64748b;">Iuran Wajib Bulanan (Rp)</label>
-                <input type="number" value="50000" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-size: 0.95rem;">
+                
+                <label style="font-size: 0.85rem; color: #64748b;">Iuran Rumah Ditempati (Rp)</label>
+                <input type="number" id="tarif-ditempati" value="40000" style="width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-size: 0.95rem; background: #dcfce7; color: #16a34a; font-weight: bold;">
+                
+                <label style="font-size: 0.85rem; color: #64748b;">Iuran Rumah Kosong (Rp)</label>
+                <input type="number" id="tarif-kosong" value="25000" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-size: 0.95rem; background: #fef2f2; color: #dc2626; font-weight: bold;">
             </div>
 
             <div class="card" style="padding: 20px; margin-bottom: 20px;">
@@ -38,9 +42,17 @@ function PengaturanPage() {
                 </button>
             </div>
 
-            <button onclick="alert('Mantap! Semua pengaturan berhasil disimpan.')" style="width: 100%; padding: 15px; background: #0f766e; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.2);">
+            <button onclick="simpanPengaturan()" style="width: 100%; padding: 15px; background: #0f766e; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.2);">
                 Simpan Perubahan
             </button>
         </div>
     `;
+}
+
+// Fungsi ketika tombol simpan diklik
+window.simpanPengaturan = function() {
+    const tarifIsi = document.getElementById("tarif-ditempati").value;
+    const tarifKosong = document.getElementById("tarif-kosong").value;
+    
+    alert(`Mantap! Tarif Rumah Ditempati (Rp ${tarifIsi}) dan Rumah Kosong (Rp ${tarifKosong}) berhasil disimpan.`);
 }
