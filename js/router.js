@@ -28,8 +28,8 @@ function navigate(pageName) {
       contentBody.innerHTML = typeof RumahPage === "function" ? RumahPage() : "<p>Modul Data Rumah sedang disiapkan...</p>";
       break;
     case "keuangan":
-      contentBody.innerHTML = "<p>Modul Keuangan sedang disiapkan...</p>";
-      break;
+    contentBody.innerHTML = typeof KeuanganPage === "function" ? KeuanganPage() : "<p>Modul Keuangan sedang disiapkan...</p>";
+    break;
     case "penagihan":
       contentBody.innerHTML = "<p>Modul Penagihan 'Galak' sedang disiapkan...</p>";
       break;
