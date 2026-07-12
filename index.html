@@ -45,9 +45,32 @@
     <script src="pages/keuangan.js"></script>
     <script src="pages/penagihan.js"></script>
     <script src="pages/profil.js"></script>
-    
-    <script src="js/router.js"></script>
-    <script src="js/main.js"></script>
+    <script src="pages/lainnya.js"></script> ```
 
-</body>
-</html>
+### Langkah 3: Update `js/router.js`
+Buka file `js/router.js`, cari bagian `switch (pageName) { ... }`, lalu tambahkan kondisi untuk menu "lainnya". Jadinya seperti ini:
+
+```javascript
+    // Deteksi modul halaman mana yang harus dipanggil
+    switch (pageName) {
+        case "dashboard":
+            contentBody.innerHTML = typeof DashboardPage === "function" ? DashboardPage() : "<p>Modul disiapkan...</p>";
+            break;
+        case "rumah":
+            contentBody.innerHTML = typeof RumahPage === "function" ? RumahPage() : "<p>Modul disiapkan...</p>";
+            break;
+        case "keuangan":
+            contentBody.innerHTML = typeof KeuanganPage === "function" ? KeuanganPage() : "<p>Modul disiapkan...</p>";
+            break;
+        case "penagihan":
+            contentBody.innerHTML = typeof PenagihanPage === "function" ? PenagihanPage() : "<p>Modul disiapkan...</p>";
+            break;
+        case "profil":
+            contentBody.innerHTML = typeof ProfilPage === "function" ? ProfilPage() : "<p>Modul disiapkan...</p>";
+            break;
+        case "lainnya": // TAMBAHKAN BLOK INI
+            contentBody.innerHTML = typeof LainnyaPage === "function" ? LainnyaPage() : "<p>Modul disiapkan...</p>";
+            break;
+        default:
+            contentBody.innerHTML = "<p style='padding: 20px;'>Halaman tidak ditemukan.</p>";
+    }
