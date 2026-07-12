@@ -1,13 +1,14 @@
 /*================================================== 
-  RT DIGITAL - GLOBAL STATE & SECURITY (LOGIN) 
-  (SUPER REVISI: KEBAL HURUF BESAR/KECIL GLOBAL)
+  RT DIGITAL - GLOBAL STATE, SECURITY & ROUTER NAVIGATION
+  (FILE UTAMA: js/main.js)
 ==================================================*/ 
 
-// 🔥 KUNCI UTAMA: Ambil sesi dan paksa huruf kecil sejak awal aplikasi dimuat!
+// 🔑 AMBIL SESI LOGIN & PAKSA lowercase AGAR KEBAL HUMAN ERROR
 let currentRole = (localStorage.getItem("rt_role") || "").toLowerCase().trim(); 
 let myBlok = localStorage.getItem("rt_blok") || ""; 
 let myName = localStorage.getItem("rt_name") || ""; 
 
+// Pengecekan otomatis saat aplikasi pertama kali dibuka browser
 document.addEventListener("DOMContentLoaded", () => {
     if (currentRole && myName) {
         if (document.getElementById("login-screen")) document.getElementById("login-screen").style.display = "none"; 
@@ -15,16 +16,71 @@ document.addEventListener("DOMContentLoaded", () => {
         
         updateUIProfile();
         renderBottomNav(); 
-        navigate("dashboard"); 
+        navigate("dashboard"); // Otomatis masuk ke Home
     }
 });
 
+// FUNGSI UTAMA ROUTER (Menghidupkan tombol klik di semua halaman .js)
+window.navigate = function(page) {
+    const mainContent = document.getElementById("main-content");
+    if (!mainContent) return;
+    
+    // Simpan status halaman aktif ke dataset HTML
+    mainContent.dataset.activePage = page;
+    
+    // Update visual menu aktif jika fungsi css tersedia
+    if (typeof updateActiveNav === "function") {
+        updateActiveNav(page);
+    }
+    
+    let roleBersih = (currentRole || "").toLowerCase().trim();
+    
+    // 🚦 SISTEM DISTRIBUSI ROUTING HALAMAN OPERASIONAL RT
+    if (page === "dashboard") {
+        if (typeof dashboardPage === "function") dashboardPage();
+    } 
+    else if (page === "rumah") {
+        if (typeof rumahPage === "function") rumahPage();
+    } 
+    else if (page === "keuangan") {
+        if (typeof keuanganPage === "function") keuanganPage();
+    } 
+    else if (page === "penagihan") {
+        if (roleBersih === "warga") {
+            alert("🔒 Akses Ditolak: Warga tidak diizinkan membuka menu Penagihan.");
+            navigate("dashboard");
+        } else {
+            if (typeof penagihanPage === "function") penagihanPage();
+        }
+    } 
+    else if (page === "lainnya") {
+        if (typeof lainnyaPage === "function") lainnyaPage();
+    } 
+    else if (page === "pengumuman") {
+        if (typeof pengumumanPage === "function") pengumumanPage();
+    } 
+    else if (page === "laporan") {
+        if (typeof laporanPage === "function") laporanPage();
+    } 
+    else if (page === "pengaturan") {
+        if (roleBersih !== "admin") {
+            alert("🔒 Akses Ditolak: Menu Pengaturan khusus untuk Ketua RT (Admin).");
+            navigate("lainnya");
+        } else {
+            if (typeof pengaturanPage === "function") pengaturanPage();
+        }
+    } 
+    else if (page === "profil") {
+        if (typeof profilPage === "function") profilPage();
+    }
+};
+
+// FUNGSI UPDATE BADGE UI PROFIL
 function updateUIProfile() {
     if (document.getElementById("user-badge-name")) {
         document.getElementById("user-badge-name").innerText = myName; 
     }
     if (document.getElementById("user-badge-role")) {
-        // Tampilkan dengan huruf besar agar UI tetap terlihat rapi & profesional
         document.getElementById("user-badge-role").innerText = currentRole.toUpperCase(); 
     }
     let icon = currentRole === 'admin' ? '👑' : (currentRole === 'bendahara' ? '💰' : (currentRole === 'penagih' ? '📋' : '👤')); 
@@ -33,7 +89,7 @@ function updateUIProfile() {
     }
 }
 
-// FUNGSI LOGIN (Terkoneksi Google Sheets)
+// FUNGSI PROSES LOGIN KE SERVER
 window.prosesLogin = async function() {
     let inputUser = document.getElementById("login-username").value; 
     let inputPass = document.getElementById("login-password").value; 
@@ -43,12 +99,11 @@ window.prosesLogin = async function() {
     let respon = await api("login", { username: inputUser, password: inputPass }); 
 
     if (respon.status === "success") { 
-        // 🔥 KUNCI UTAMA 2: Ubah data dari server jadi huruf kecil sebelum masuk ke memori aplikasi
         currentRole = (respon.role || "").toLowerCase().trim(); 
         myBlok = respon.blok; 
         myName = respon.name; 
 
-        localStorage.setItem("rt_role", currentRole); // Simpan ke browser dalam bentuk lowercase
+        localStorage.setItem("rt_role", currentRole);
         localStorage.setItem("rt_blok", myBlok);
         localStorage.setItem("rt_name", myName);
 
@@ -60,11 +115,11 @@ window.prosesLogin = async function() {
         renderBottomNav(); 
         navigate("dashboard"); 
     } else { 
-        alert("❌ " + (respon.message || "Login Gagal! Username atau Password salah.")); 
+        alert("❌ " + (respon.message || "Username atau Password salah.")); 
     } 
 }; 
 
-// FUNGSI LOGOUT 
+// FUNGSI LOGOUT KELUAR APLIKASI
 window.prosesLogout = function() { 
     if (confirm("Yakin ingin keluar dari aplikasi?")) { 
         currentRole = ""; 
@@ -79,7 +134,7 @@ window.prosesLogout = function() {
     } 
 }; 
 
-// FUNGSI NAVIGASI BAWAH 
+// FUNGSI MENGGAMBAR NAVIGASI BAWAH DINAMIS
 window.renderBottomNav = function() { 
     const navContainer = document.querySelector(".bottom-nav"); 
     if (!navContainer) return; 
@@ -106,9 +161,4 @@ window.renderBottomNav = function() {
             <span>${item.text}</span> 
         </a> 
     `).join(''); 
-
-    const activePage = document.getElementById("main-content").dataset.activePage || "dashboard"; 
-    if (typeof updateActiveNav === "function") {
-        setTimeout(() => updateActiveNav(activePage), 50); 
-    }
 };
