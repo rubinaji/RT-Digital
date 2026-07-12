@@ -1,35 +1,162 @@
+/*================================================== 
+  RT DIGITAL - FULL PREMIUM CSS (MOBILE BANKING)
+==================================================*/ 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
     --primary: #0f766e;
     --secondary: #14b8a6;
-    --bg: #f8fafc;
+    --bg: #f1f5f9;
     --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --white: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
 }
 
 body {
     background-color: var(--bg);
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
-.card {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
-    transition: transform 0.2s ease;
+/* 📱 Container HP */
+#app {
+    max-width: 500px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--bg);
+    position: relative;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    padding-bottom: 80px; /* Ruang bernapas untuk menu bawah */
 }
 
-.card:active {
-    transform: scale(0.98);
-}
-
+/* 🟢 Header Melengkung */
 .header {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white;
-    padding: 30px 20px;
-    border-radius: 0 0 25px 25px;
+    color: var(--white);
+    padding: 30px 20px 40px 20px;
+    border-radius: 0 0 24px 24px;
+}
+.header h2 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
+.header p { margin: 4px 0 0 0; opacity: 0.9; font-size: 0.85rem; }
+
+/* 💳 Kartu Saldo Melayang */
+.balance {
+    margin: -30px 20px 20px 20px; /* Efek menabrak header */
+    background: var(--white);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    position: relative;
+    z-index: 10;
+}
+.balance span { color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 5px; }
+.balance h1 { margin: 0; font-size: 2rem; color: var(--primary); font-weight: 800; letter-spacing: -0.03em; }
+
+/* 📊 Kotak Statistik (Grid 2 Kolom) */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    padding: 0 20px;
+    margin-bottom: 20px;
+}
+.stat {
+    background: var(--white);
+    padding: 15px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+    border: 1px solid var(--border);
+}
+.stat h2 { margin: 5px 0; font-size: 1.5rem; font-weight: 800; color: var(--text); }
+
+/* 📈 Bar Progress Pembayaran */
+.progress-card {
+    margin: 0 20px 20px 20px;
+    background: var(--white);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+    border: 1px solid var(--border);
+}
+.progress {
+    height: 10px;
+    background: var(--border);
+    border-radius: 10px;
+    margin: 12px 0;
+    overflow: hidden;
+}
+.progress div {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 10px;
 }
 
-/* Navigasi Bawah Styling */
-.bottom-nav {
-    box-shadow: 0 -5px 15px rgba(0,0,0,0.02);
+/* 📋 Daftar Aktivitas / Transaksi */
+.activity {
+    margin: 0 20px 20px 20px;
+    background: var(--white);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+    border: 1px solid var(--border);
 }
+
+/* 📦 Komponen Kartu Standar */
+.card {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+}
+
+/* 🔘 Menu Navigasi Bawah */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 500px;
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    z-index: 1000;
+}
+.bottom-nav a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: 0.2s;
+}
+
+/* 🖱️ Tombol Tambah Data & Modal */
+button {
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+button:active {
+    transform: scale(0.95);
+}
+input, select {
+    width: 100%; padding: 12px; border: 1px solid var(--border);
+    border-radius: 10px; outline: none; margin-bottom: 15px;
+    font-family: 'Inter', sans-serif;
+}
+input:focus, select:focus { border-color: var(--primary); }
