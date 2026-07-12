@@ -27,12 +27,13 @@ function renderBottomNav() {
         navItems.push({ id: 'rumah', icon: '🏘️', text: 'Rumah' });
         navItems.push({ id: 'keuangan', icon: '💰', text: 'Keuangan' });
         navItems.push({ id: 'penagihan', icon: '📋', text: 'Penagihan' });
-        navItems.push({ id: 'lainnya', icon: '☰', text: 'Lainnya' }); // Menu Super Admin
+        navItems.push({ id: 'lainnya', icon: '☰', text: 'Lainnya' }); // Menu Akses Admin
     } 
     else if (currentRole === 'bendahara') {
         navItems.push({ id: 'rumah', icon: '🏘️', text: 'Rumah' }); 
         navItems.push({ id: 'keuangan', icon: '💰', text: 'Keuangan' });
         navItems.push({ id: 'penagihan', icon: '📋', text: 'Penagihan' });
+        navItems.push({ id: 'lainnya', icon: '☰', text: 'Lainnya' }); // 🔓 BENDHARA SEKARANG BISA AKSES MENU LAINNYA!
     } 
     else if (currentRole === 'penagih') {
         navItems.push({ id: 'penagihan', icon: '📋', text: 'Penagihan' });
@@ -51,7 +52,6 @@ function renderBottomNav() {
     `).join('');
     
     // Panggil fungsi untuk nge-highlight menu yang sedang aktif
-    // (Karena menu baru dirender ulang)
     const activePage = document.getElementById("main-content").dataset.activePage || "dashboard";
     updateActiveNav(activePage);
 }
