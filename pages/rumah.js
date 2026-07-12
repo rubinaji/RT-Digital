@@ -22,7 +22,7 @@ async function rumahPage() {
     if (respon.status === "success") {
         globalDataRumah = respon.data; // Simpan ke variabel lokal untuk dirender
         
-        // 3. Render kerangka halaman dan kerangka Modal (Dropdown RT/RW sudah diubah jadi Input Bebas)
+        // 3. Render kerangka halaman dan kerangka Modal
         mainContent.innerHTML = `
             <div id="rumah-container" style="padding: 20px; animation: fadeIn 0.3s ease;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -119,10 +119,14 @@ function setupRumahLogic() {
         btnSimpan.innerText = "Menyimpan...";
         btnSimpan.disabled = true;
 
-        ifif (editIndexRumah === -1) {
-            // ... (KODE TAMBAH RUMAH YANG SUDAH ADA, JANGAN DIUBAH) ...
+        if (editIndexRumah === -1) {
             let res = await api("tambahRumah", {
-                blok: blok, rtrw: `RT ${rt}/RW ${rw}`, nama: penghuni, wa: noWA, status: status
+                blok: blok,
+                nama: penghuni,
+                wa: noWA,
+                rt: rt,
+                rw: rw,
+                status: status
             });
 
             if(res.status === "success") {
@@ -133,9 +137,8 @@ function setupRumahLogic() {
                 alert("Gagal menyimpan: " + res.message);
             }
         } else {
-            // FITUR EDIT SEKARANG SUDAH HIDUP! 🚀
             let res = await api("editRumah", {
-                blok: blok,  // Ini yang jadi kunci pencarian di Sheet
+                blok: blok,  
                 rtrw: `RT ${rt}/RW ${rw}`,
                 nama: penghuni,
                 wa: noWA,
@@ -145,7 +148,7 @@ function setupRumahLogic() {
             if(res.status === "success") {
                 alert("Berhasil memperbarui data rumah!");
                 modal.style.display = "none";
-                navigate("rumah"); // Refresh halaman otomatis
+                navigate("rumah"); 
             } else {
                 alert("Gagal update: " + res.message);
             }
@@ -206,7 +209,6 @@ function setupRumahLogic() {
         document.getElementById("input-penghuni").value = globalDataRumah[index].nama;
         document.getElementById("input-wa").value = globalDataRumah[index].wa || "";
         
-        // Ekstrak angka dari string "RT 01/RW 05" agar otomatis masuk kolom saat edit
         let rtrwRaw = globalDataRumah[index].rtrw || "RT 01/RW 05";
         let matchRt = rtrwRaw.match(/RT\s*(\d+)/i);
         let matchRw = rtrwRaw.match(/RW\s*(\d+)/i);
