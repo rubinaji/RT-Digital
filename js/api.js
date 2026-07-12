@@ -1,9 +1,9 @@
-/*==================================================
-  RT DIGITAL - API BRIDGE (js/api.js)
-==================================================*/
+/*================================================== 
+  RT DIGITAL - API BRIDGE (js/api.js) 
+==================================================*/ 
 
-// ⚠️ GANTI STRING INI DENGAN URL DEPLOYMENT WEB APP GOOGLE APPS SCRIPT-MU
-const SCRIPT_URL = "TARUH_URL_WEB_APP_KAMU_DI_SINI";
+// URL deployment Web App Google Apps Script milikmu
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxK7wlnfTk2eLiPXfVCN6X1w-c34LFx_bxzpdtTT8hKsMn25P4sv4WB_gJjHG1p2pkv/exec"; 
 
 /**
  * Fungsi utama untuk memanggil backend (Google Apps Script)
@@ -12,27 +12,24 @@ const SCRIPT_URL = "TARUH_URL_WEB_APP_KAMU_DI_SINI";
  * @return {Object} Hasil response dari server
  */
 async function api(action, params = {}) {
-  // Munculkan layar loading setiap kali memanggil API
-  if (typeof showLoading === "function") showLoading();
-
-  try {
-    // Susun parameter URL (contoh: ?action=login&hp=0812...)
-    let url = `${SCRIPT_URL}?action=${action}`;
-    for (let key in params) {
-      url += `&${key}=${encodeURIComponent(params[key])}`;
-    }
-
-    // Lakukan request (fetch) data ke server GAS
-    const response = await fetch(url);
-    const result = await response.json();
+    // Munculkan layar loading setiap kali memanggil API
+    if (typeof showLoading === "function") showLoading();
     
-    return result;
-  } catch (error) {
-    console.error("API Error:", error);
-    alert("Gagal terhubung ke server. Periksa koneksi internet.");
-    return { status: false, pesan: error.message };
-  } finally {
-    // Sembunyikan layar loading setelah data berhasil didapat (atau gagal)
-    if (typeof hideLoading === "function") hideLoading();
-  }
+    try {
+        // Menggunakan POST agar aman saat mengirim data kredensial atau iuran
+        const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: action, ...params })
+        });
+        
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("API Error:", error);
+        alert("Gagal terhubung ke server. Periksa koneksi internet.");
+        return { status: "failed", message: error.message };
+    } finally {
+        // Sembunyikan layar loading setelah data didapat atau gagal
+        if (typeof hideLoading === "function") hideLoading();
+    }
 }
