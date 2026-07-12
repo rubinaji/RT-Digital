@@ -9,6 +9,14 @@ function renderBottomNav() {
     const navContainer = document.querySelector(".bottom-nav");
     if (!navContainer) return;
 
+    // 🌟 SIHIR BIKIN MENU MENYAMPING (HORIZONTAL) 🌟
+    navContainer.style.display = "flex";
+    navContainer.style.justifyContent = "space-around";
+    navContainer.style.alignItems = "center";
+    navContainer.style.padding = "10px 0";
+    navContainer.style.background = "#ffffff";
+    navContainer.style.borderTop = "1px solid #e2e8f0";
+
     let navItems = [];
 
     // 1. HOME (Menu Wajib Semua Peran)
@@ -22,7 +30,7 @@ function renderBottomNav() {
         navItems.push({ id: 'lainnya', icon: '☰', text: 'Lainnya' }); // Menu Super Admin
     } 
     else if (currentRole === 'bendahara') {
-        navItems.push({ id: 'rumah', icon: '🏘️', text: 'Rumah' }); // Hanya bisa lihat data
+        navItems.push({ id: 'rumah', icon: '🏘️', text: 'Rumah' }); 
         navItems.push({ id: 'keuangan', icon: '💰', text: 'Keuangan' });
         navItems.push({ id: 'penagihan', icon: '📋', text: 'Penagihan' });
     } 
@@ -30,28 +38,28 @@ function renderBottomNav() {
         navItems.push({ id: 'penagihan', icon: '📋', text: 'Penagihan' });
     } 
     else if (currentRole === 'warga') {
-        navItems.push({ id: 'keuangan', icon: '💰', text: 'Kas RT' }); // Transparansi
+        navItems.push({ id: 'keuangan', icon: '💰', text: 'Kas RT' }); 
         navItems.push({ id: 'penagihan', icon: '📋', text: 'Tagihan' });
     }
 
     // Suntikkan menu ke dalam HTML
     navContainer.innerHTML = navItems.map(item => `
-        <a href="#" onclick="navigate('${item.id}')" style="text-decoration: none; color: #0f766e; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: bold; transition: 0.3s; padding-bottom: 4px; opacity: 0.6;">
+        <a href="#" onclick="navigate('${item.id}')" style="text-decoration: none; color: #0f766e; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: bold; transition: 0.3s; padding-bottom: 4px; opacity: 0.6; width: 60px;">
             <span style="font-size: 1.4rem;">${item.icon}</span>
             ${item.text}
         </a>
     `).join('');
+    
+    // Panggil fungsi untuk nge-highlight menu yang sedang aktif
+    // (Karena menu baru dirender ulang)
+    const activePage = document.getElementById("main-content").dataset.activePage || "dashboard";
+    updateActiveNav(activePage);
 }
 
 // Fungsi untuk mengganti peran secara global
 function changeRole(role) {
     currentRole = role;
-    
-    // 1. Refresh menu navigasi bawah
     renderBottomNav();
-    
-    // 2. Setiap kali ganti akun, "lempar" paksa kembali ke Dashboard
-    // Ini biar nggak ada kejadian Penagih "nyangkut" di halaman Keuangan peninggalan Bendahara
     navigate("dashboard");
 }
 
