@@ -1,12 +1,12 @@
 /*==================================================
-   RT DIGITAL - ROUTER ENGINE
+   RT DIGITAL - ROUTER ENGINE (UNIVERSAL & ASYNC)
 ==================================================*/
 
 function navigate(pageName) {
     const contentBody = document.getElementById("main-content");
     if (!contentBody) return;
 
-    // Simpan data halaman yang aktif untuk styling
+    // Simpan data halaman yang aktif untuk styling navigasi
     contentBody.dataset.activePage = pageName;
 
     contentBody.innerHTML = `
@@ -15,40 +15,29 @@ function navigate(pageName) {
         </div>
     `;
 
-    // Deteksi modul halaman mana yang harus dipanggil
-    switch (pageName) {
-        case "dashboard":
-            contentBody.innerHTML = typeof DashboardPage === "function" ? DashboardPage() : "<p>Modul disiapkan...</p>";
-            break;
-        case "rumah":
-            contentBody.innerHTML = typeof RumahPage === "function" ? RumahPage() : "<p>Modul disiapkan...</p>";
-            break;
-        case "keuangan":
-            contentBody.innerHTML = typeof KeuanganPage === "function" ? KeuanganPage() : "<p>Modul disiapkan...</p>";
-            break;
-        case "penagihan":
-            contentBody.innerHTML = typeof PenagihanPage === "function" ? PenagihanPage() : "<p>Modul disiapkan...</p>";
-            break;
-        case "profil":
-            contentBody.innerHTML = typeof ProfilPage === "function" ? ProfilPage() : "<p>Modul disiapkan...</p>";
-            break;
-        case "lainnya":
-            contentBody.innerHTML = typeof LainnyaPage === "function" ? LainnyaPage() : "<p>Modul disiapkan...</p>";
-            break;
-          case "user":
-            contentBody.innerHTML = typeof UserPage === "function" ? UserPage() : "<p>Modul disiapkan...</p>";
-            break;
-        case "pengumuman": 
-            contentBody.innerHTML = typeof PengumumanPage === "function" ? PengumumanPage() : "<p>Modul disiapkan...</p>";
-            break;
-          case "laporan": 
-            contentBody.innerHTML = typeof LaporanPage === "function" ? LaporanPage() : "<p>Modul disiapkan...</p>";
-            break;
-          case "pengaturan": 
-            contentBody.innerHTML = typeof PengaturanPage === "function" ? PengaturanPage() : "<p>Modul disiapkan...</p>";
-            break;
-        default:
-            contentBody.innerHTML = "<p style='padding: 20px;'>Halaman tidak ditemukan.</p>";
+    // 🔎 PENGAMAN OTOMATIS: Mendeteksi fungsi versi camelCase (dashboardPage) atau PascalCase (DashboardPage)
+    let namaFungsiCamel = pageName + "Page";
+    let namaFungsiPascal = pageName.charAt(0).toUpperCase() + pageName.slice(1) + "Page";
+    
+    let targetFunction = window[namaFungsiCamel] || window[namaFungsiPascal];
+
+    // Eksekusi Halaman jika modul fungsi ditemukan
+    if (typeof targetFunction === "function") {
+        const hasilRender = targetFunction();
+        
+        // Jika fungsi halaman mengembalikan teks HTML biasa (versi lama), cetak langsung
+        if (typeof hasilRender === "string") {
+            contentBody.innerHTML = hasilRender;
+        }
+        // Jika hasilnya Promise/tidak mengembalikan string (artinya dia mengubah DOM secara internal/async), 
+        // biarkan fungsi tersebut yang mengontrol isi main-content secara mandiri.
+    } else {
+        // Tampilan cadangan jika file halaman benar-benar belum dibuat
+        contentBody.innerHTML = `
+            <div style="text-align: center; margin-top: 50px; color: #94a3b8;">
+                <p>Modul halaman <b>${pageName}</b> sedang disiapkan...</p>
+            </div>
+        `;
     }
 
     updateActiveNav(pageName);
