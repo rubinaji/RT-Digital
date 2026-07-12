@@ -6,6 +6,18 @@
  * Fungsi utama yang dipanggil oleh router saat menu Home diklik
  */
 function DashboardPage() {
+  // PERBAIKAN: Beri jeda 50ms agar wadah HTML selesai dibuat dulu di layar
+  setTimeout(loadDashboardData, 50);
+
+  return `
+    <div id="dashboard-container" style="animation: fadeIn 0.3s ease; padding: 20px;">
+      <div style="text-align: center; margin-top: 50px; color: #64748b;">
+        <div class="spinner" style="margin: 0 auto 10px auto;"></div>
+        <p>Memuat data RT...</p>
+      </div>
+    </div>
+  `;
+}
   // Panggil fungsi render data
   loadDashboardData();
 
