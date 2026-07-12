@@ -1,103 +1,95 @@
 /*==================================================
-   RT DIGITAL - MODUL DASHBOARD (HOME)
+   RT DIGITAL - MODUL DASHBOARD (MULTI-ROLE)
 ==================================================*/
 
 function DashboardPage() {
-    
-    // --- 1. LOGIKA MENGHITUNG KEUANGAN ---
-    let totalSaldo = 0;
-    let totalPemasukan = 0;
-    let totalPengeluaran = 0;
+    let contentHtml = "";
 
-    if (typeof dataKeuangan !== 'undefined') {
-        dataKeuangan.forEach(item => {
-            if (item.tipe === 'masuk') {
-                totalPemasukan += item.jumlah;
-                totalSaldo += item.jumlah;
-            } else if (item.tipe === 'keluar') {
-                totalPengeluaran += item.jumlah;
-                totalSaldo -= item.jumlah;
-            }
-        });
-    }
-
-    let totalRumah = typeof dataRumah !== 'undefined' ? dataRumah.length : 0;
-    let belumBayar = 1; // Dummy statistik tunggakan
-
-    // --- 2. LOGIKA KUSTOMISASI PERAN (ROLE UI) ---
-    let greetingTitle = "Halo, Pengurus RT! 👋";
-    let greetingSub = "Berikut adalah ringkasan data lingkungan kita hari ini.";
-    
-    if (currentRole === 'warga') {
-        greetingTitle = "Halo, Warga RT! 👋";
-        greetingSub = "Berikut adalah laporan transparansi kas lingkungan kita.";
-    } else if (currentRole === 'bendahara') {
-        greetingTitle = "Halo, Bendahara RT! 💰";
-        greetingSub = "Kelola pemasukan dan pengeluaran kas dengan bijak.";
-    } else if (currentRole === 'penagih') {
-        greetingTitle = "Halo, Petugas Penagih! 📋";
-        greetingSub = "Berikut ringkasan tunggakan iuran warga bulan ini.";
-    }
-
-    // Mengatur Menu Akses Cepat sesuai Peran
-    let quickMenuHTML = '';
+    // 1. DASHBOARD ADMIN & BENDAHARA
     if (currentRole === 'admin' || currentRole === 'bendahara') {
-        quickMenuHTML = `
-            <h3 style="margin: 25px 0 15px 0; font-size: 1.1rem; color: #334155;">Akses Cepat</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <button onclick="navigate('rumah')" style="padding: 15px; font-size: 0.95rem; background: white; color: #0f766e; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.5rem;">🏠</span> Data Rumah
-                </button>
-                <button onclick="navigate('keuangan')" style="padding: 15px; font-size: 0.95rem; background: white; color: #0f766e; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.5rem;">💰</span> Catat Kas
-                </button>
+        contentHtml = `
+            <div class="card" style="background: linear-gradient(135deg, #0f766e, #14b8a6); color: white; padding: 25px 20px; border: none; margin-bottom: 20px; border-radius: 16px; box-shadow: 0 4px 10px rgba(15, 118, 110, 0.3);">
+                <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Total Saldo Kas RT</p>
+                <h1 style="margin: 5px 0 0 0; font-size: 2.2rem;">Rp 1.550.000</h1>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div class="card" style="text-align: center; padding: 15px; margin-bottom: 0;">
+                    <h3 style="margin: 0; color: #16a34a;">+ Rp 200.000</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #64748b;">Pemasukan</p>
+                </div>
+                <div class="card" style="text-align: center; padding: 15px; margin-bottom: 0;">
+                    <h3 style="margin: 0; color: #ef4444;">- Rp 50.000</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #64748b;">Pengeluaran</p>
+                </div>
             </div>
         `;
-    } else if (currentRole === 'penagih') {
-        quickMenuHTML = `
-            <h3 style="margin: 25px 0 15px 0; font-size: 1.1rem; color: #334155;">Akses Cepat</h3>
-            <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
-                <button onclick="navigate('penagihan')" style="padding: 15px; font-size: 0.95rem; background: white; color: #0f766e; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; grid-column: span 2;">
-                    <span style="font-size: 1.5rem;">📋</span> Cek Tunggakan Warga
-                </button>
+    } 
+    // 2. DASHBOARD PENAGIH
+    else if (currentRole === 'penagih') {
+        contentHtml = `
+            <div class="card" style="background: linear-gradient(135deg, #eab308, #f59e0b); color: white; padding: 25px 20px; border: none; margin-bottom: 20px; border-radius: 16px; box-shadow: 0 4px 10px rgba(234, 179, 8, 0.3);">
+                <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Target Rumah Harus Ditagih</p>
+                <h1 style="margin: 5px 0 0 0; font-size: 2.2rem;">2 Rumah</h1>
+            </div>
+            <div class="card" style="padding: 15px; border-left: 4px solid #dc2626; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <p style="margin: 0; font-weight: bold; color: #1e293b;">Ibu Siti Aminah (A-03)</p>
+                    <p style="margin: 3px 0 0 0; font-size: 0.8rem; color: #ef4444; font-weight: bold;">Nunggak 3 Bulan</p>
+                </div>
+                <button onclick="navigate('penagihan')" style="padding: 8px 12px; background: #0f766e; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Mulai Tagih</button>
             </div>
         `;
-    } // Jika Warga, quickMenuHTML tetap kosong
+    }
+    // 3. DASHBOARD WARGA (PERSONALISASI)
+    else if (currentRole === 'warga') {
+        let statusKas = "Data tidak ditemukan";
+        let colorKas = "#64748b";
+        let textKas = "Pastikan nomor blok sesuai.";
 
-    const formatRp = (angka) => {
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
-    };
+        // Cek data tagihan khusus milik warga yang sedang login
+        if (typeof dataTagihan !== 'undefined') {
+            let myData = dataTagihan.find(w => w.blok.toLowerCase() === (window.myBlok || "").toLowerCase());
+            if (myData) {
+                if (myData.menungguVerifikasi) {
+                    statusKas = "⏳ PROSES VERIFIKASI";
+                    colorKas = "#d97706";
+                    textKas = "Bukti transfer Anda sedang dicek oleh Bendahara.";
+                } else if (myData.saldoBulan >= 0) {
+                    statusKas = "✅ LUNAS";
+                    colorKas = "#16a34a";
+                    textKas = "Terima kasih telah membayar iuran tepat waktu!";
+                } else {
+                    statusKas = "🚨 NUNGGAK " + Math.abs(myData.saldoBulan) + " BULAN";
+                    colorKas = "#dc2626";
+                    textKas = "Mohon segera lunasi tunggakan kas RT Anda.";
+                }
+            }
+        }
+
+        contentHtml = `
+            <div class="card" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 25px 20px; border: none; margin-bottom: 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);">
+                <h2 style="margin: 0;">Selamat Datang!</h2>
+                <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">Warga ${window.myBlok || "RT 01"}</p>
+            </div>
+            
+            <div class="card" style="text-align: center; padding: 25px 20px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                <h3 style="margin: 0 0 15px 0; color: #1e293b;">Status Kas Anda</h3>
+                <span style="background: ${colorKas}20; color: ${colorKas}; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 1.2rem; border: 2px solid ${colorKas};">${statusKas}</span>
+                <p style="margin: 15px 0 0 0; font-size: 0.85rem; color: #64748b;">${textKas}</p>
+            </div>
+        `;
+    }
 
     return `
         <div style="padding: 20px; animation: fadeIn 0.3s ease;">
-            
-            <div style="margin-bottom: 25px;">
-                <h2 style="margin: 0; color: #1e293b;">${greetingTitle}</h2>
-                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">${greetingSub}</p>
-            </div>
-
-            <div class="card" style="background: linear-gradient(135deg, #0f766e, #14b8a6); color: white; border: none; box-shadow: 0 10px 15px -3px rgba(15, 118, 110, 0.3);">
-                <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Total Saldo Kas RT</p>
-                <h1 style="margin: 10px 0; font-size: 2.2rem;">${formatRp(totalSaldo)}</h1>
-                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; opacity: 0.9; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
-                    <span><b>↑</b> Masuk: ${formatRp(totalPemasukan)}</span>
-                    <span><b>↓</b> Keluar: ${formatRp(totalPengeluaran)}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: bold;">Mode Akses:</p>
+                    <h2 style="margin: 0; color: #0f766e; text-transform: capitalize;">${currentRole}</h2>
                 </div>
+                <span style="font-size: 2rem;">👋</span>
             </div>
-
-            <h3 style="margin: 25px 0 15px 0; font-size: 1.1rem; color: #334155;">Statistik Lingkungan</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
-                <div class="card" style="margin-bottom: 0; text-align: center; padding: 15px;">
-                    <h2 style="margin: 0; color: #0f766e; font-size: 1.8rem;">${totalRumah}</h2>
-                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #64748b; font-weight: 600;">Total Rumah</p>
-                </div>
-                <div class="card" style="margin-bottom: 0; text-align: center; padding: 15px;">
-                    <h2 style="margin: 0; color: #eab308; font-size: 1.8rem;">${belumBayar}</h2>
-                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #64748b; font-weight: 600;">Belum Bayar</p>
-                </div>
-            </div>
-
-            ${quickMenuHTML}
+            ${contentHtml}
         </div>
     `;
 }
