@@ -1,6 +1,6 @@
 /*==================================================
    RT DIGITAL - MODUL BERITA & PENGUMUMAN WARGA
-   (SESUAI MATRIKS HAK AKSES RESMI)
+   (FULL AKTIF CRUD KE GOOGLE SHEETS)
 ==================================================*/
 
 async function pengumumanPage() {
@@ -23,9 +23,11 @@ async function pengumumanPage() {
         </div>
     `;
 
-    // Render Tombol Tambah Khusus Akses Komando (Admin & Bendahara = ✅)
+    let roleBersih = (currentRole || "").toLowerCase().trim();
     const wadahBtn = document.getElementById("wadah-btn-pengumuman");
-    if (currentRole === 'admin' || currentRole === 'bendahara') {
+    
+    // HANYA ADMIN & BENDAHARA BISA TAMBAH BERITA
+    if (roleBersih === 'admin' || roleBersih === 'bendahara') {
         wadahBtn.innerHTML = `<button onclick="aksiTambahPengumuman()" style="padding: 8px 15px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.8rem;">+ Tambah</button>`;
     }
 
@@ -34,7 +36,8 @@ async function pengumumanPage() {
     const feed = document.getElementById("feed-pengumuman-full");
 
     if (res.status === "success" && res.data && res.data.length > 0) {
-        feed.innerHTML = res.data.map(p => {
+        // Tampilkan daftar berita (dibalik agar yang terbaru di atas)
+        feed.innerHTML = res.data.reverse().map(p => {
             let tanggal = p.tgl ? new Date(p.tgl).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Baru saja';
             return `
                 <div class="card" style="padding: 18px; background: white; border-radius: 14px; border: 1px solid #e2e8f0; border-left: 5px solid #0f766e; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);">
@@ -42,7 +45,7 @@ async function pengumumanPage() {
                         <h4 style="margin: 0; color: #1e293b; font-size: 0.95rem; font-weight: 800; line-height: 1.3;">📌 ${p.judul}</h4>
                         <small style="color: #94a3b8; font-size: 0.7rem; white-space: nowrap; font-weight: 600;">🗓️ ${tanggal}</small>
                     </div>
-                    <p style="margin: 0; color: #475569; font-size: 0.85rem; line-height: 1.5; text-align: justify;">${p.isi}</p>
+                    <p style="margin: 0; color: #475569; font-size: 0.85rem; line-height: 1.5; text-align: justify; white-space: pre-line;">${p.isi}</p>
                 </div>
             `;
         }).join('');
@@ -55,6 +58,24 @@ async function pengumumanPage() {
     }
 }
 
-window.aksiTambahPengumuman = function() {
-    alert("Fitur broadcast penulisan pengumuman baru ke database Google Sheet siap digunakan!");
+// FUNGSI INTI UNTUK MENGIRIM BERITA KE DATABASE
+window.aksiTambahPengumuman = async function() {
+    let jdl = prompt("📢 Masukkan Judul Pengumuman / Berita:");
+    if (!jdl) return;
+    
+    let txt = prompt("📝 Tulis isi pengumuman/berita secara lengkap:");
+    if (!txt) return;
+
+    let confirmKirim = confirm(`Siarkan pengumuman ini sekarang?\n\nJudul: ${jdl}\nIsi: ${txt}`);
+    if (!confirmKirim) return;
+
+    // Tembak data ke Google Sheet
+    let res = await api("tambahPengumuman", { judul: jdl, isi: txt });
+    
+    if(res.status === "success") {
+        alert("✅ Pengumuman berhasil disiarkan dan disimpan permanen ke database!");
+        pengumumanPage(); // Refresh list otomatis tanpa perlu pencet F5
+    } else {
+        alert("❌ Gagal menyiarkan pengumuman: " + res.message);
+    }
 };
