@@ -3,6 +3,45 @@
 ==================================================*/
 
 function DashboardPage() {
+    
+    // --- 1. LOGIKA MENGHITUNG KEUANGAN ---
+    let totalSaldo = 0;
+    let totalPemasukan = 0;
+    let totalPengeluaran = 0;
+
+    // Cek apakah dataKeuangan sudah tersedia dari file keuangan.js
+    if (typeof dataKeuangan !== 'undefined') {
+        dataKeuangan.forEach(item => {
+            if (item.tipe === 'masuk') {
+                totalPemasukan += item.jumlah;
+                totalSaldo += item.jumlah;
+            } else if (item.tipe === 'keluar') {
+                totalPengeluaran += item.jumlah;
+                totalSaldo -= item.jumlah;
+            }
+        });
+    }
+
+    // --- 2. LOGIKA MENGHITUNG RUMAH ---
+    let totalRumah = 0;
+    // Cek apakah dataRumah sudah tersedia dari file rumah.js
+    if (typeof dataRumah !== 'undefined') {
+        totalRumah = dataRumah.length;
+    }
+
+    // Dummy data untuk yang belum bayar iuran (Nanti bisa disambung ke penagihan.js)
+    let belumBayar = 2; 
+
+    // --- 3. FUNGSI BANTU FORMAT MATA UANG ---
+    const formatRp = (angka) => {
+        return new Intl.NumberFormat('id-ID', { 
+            style: 'currency', 
+            currency: 'IDR', 
+            minimumFractionDigits: 0 
+        }).format(angka);
+    };
+
+    // --- 4. TAMPILAN DASHBOARD ---
     return `
         <div style="padding: 20px; animation: fadeIn 0.3s ease;">
             
@@ -13,11 +52,11 @@ function DashboardPage() {
 
             <div class="card" style="background: linear-gradient(135deg, #0f766e, #14b8a6); color: white; border: none; box-shadow: 0 10px 15px -3px rgba(15, 118, 110, 0.3);">
                 <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Total Kas RT Saat Ini</p>
-                <h1 style="margin: 10px 0; font-size: 2.2rem;">Rp 2.500.000</h1>
+                <h1 style="margin: 10px 0; font-size: 2.2rem;">${formatRp(totalSaldo)}</h1>
                 
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem; opacity: 0.9; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
-                    <span><span style="font-weight:bold;">↑</span> Pemasukan: Rp 3.000.000</span>
-                    <span><span style="font-weight:bold;">↓</span> Pengeluaran: Rp 500.000</span>
+                    <span><span style="font-weight:bold;">↑</span> Masuk: ${formatRp(totalPemasukan)}</span>
+                    <span><span style="font-weight:bold;">↓</span> Keluar: ${formatRp(totalPengeluaran)}</span>
                 </div>
             </div>
 
@@ -25,13 +64,13 @@ function DashboardPage() {
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
                 
                 <div class="card" style="margin-bottom: 0; text-align: center; padding: 15px;">
-                    <h2 style="margin: 0; color: #0f766e; font-size: 1.8rem;">45</h2>
+                    <h2 style="margin: 0; color: #0f766e; font-size: 1.8rem;">${totalRumah}</h2>
                     <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #64748b; font-weight: 600;">Total Rumah</p>
                 </div>
                 
                 <div class="card" style="margin-bottom: 0; text-align: center; padding: 15px;">
-                    <h2 style="margin: 0; color: #eab308; font-size: 1.8rem;">12</h2>
-                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #64748b; font-weight: 600;">Belum Bayar Kas</p>
+                    <h2 style="margin: 0; color: #eab308; font-size: 1.8rem;">${belumBayar}</h2>
+                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #64748b; font-weight: 600;">Belum Bayar</p>
                 </div>
 
             </div>
