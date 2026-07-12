@@ -32,7 +32,7 @@ function LainnyaPage() {
                     <p style="margin: 5px 0 0 0; font-size: 0.75rem; color: #64748b;">Kelola akses akun</p>
                 </div>
 
-                <div class="card" onclick="alert('Modul Pengumuman segera hadir!')" style="text-align: center; padding: 20px 15px; cursor: pointer; transition: 0.2s; margin-bottom: 0;">
+               <div class="card" onclick="navigate('pengumuman')" style="text-align: center; padding: 20px 15px; cursor: pointer; transition: 0.2s; margin-bottom: 0;">
                     <div style="font-size: 2rem; margin-bottom: 10px;">📢</div>
                     <h4 style="margin: 0; color: #0f766e; font-size: 1rem;">Pengumuman</h4>
                     <p style="margin: 5px 0 0 0; font-size: 0.75rem; color: #64748b;">Mading digital warga</p>
