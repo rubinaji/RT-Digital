@@ -1,13 +1,12 @@
 /*==================================================
-   RT DIGITAL - MODUL PENAGIHAN (SISTEM SALDO BULAN)
+   RT DIGITAL - MODUL PENAGIHAN (BENDAHARA SOP + WA)
 ==================================================*/
 
-// Logika Akuntansi: Minus (-) = Nunggak, Positif (+) = Deposit/Lunas di Muka
 let dataTagihan = [
     { blok: "Blok A-01", penghuni: "Bpk. Budi Santoso", statusRumah: "Ditempati", saldoBulan: 0 },
     { blok: "Blok A-02", penghuni: "Belum ada penghuni", statusRumah: "Kosong", saldoBulan: 0 },
-    { blok: "Blok A-03", penghuni: "Ibu Siti Aminah", statusRumah: "Dikontrak", saldoBulan: -3 }, // Minus = Nunggak 3 bulan
-    { blok: "Blok A-04", penghuni: "Bpk. Eko Prasetyo", statusRumah: "Ditempati", saldoBulan: 12 } // Positif = Deposit 12 bulan
+    { blok: "Blok A-03", penghuni: "Ibu Siti Aminah", statusRumah: "Dikontrak", saldoBulan: -3 }, 
+    { blok: "Blok A-04", penghuni: "Bpk. Eko Prasetyo", statusRumah: "Ditempati", saldoBulan: 12 } 
 ];
 
 function PenagihanPage() {
@@ -19,7 +18,7 @@ function PenagihanPage() {
                 <h2 style="margin: 0; color: #0f766e;">📋 Penagihan</h2>
                 <div id="wadah-btn-generate"></div>
             </div>
-            <p style="color: #64748b; font-size: 0.9rem; margin-top: 0; margin-bottom: 20px;">Kelola status pembayaran kas warga.</p>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 0; margin-bottom: 20px;">Kelola status pembayaran dan penagihan kas warga.</p>
             
             <div id="list-penagihan" style="display: grid; grid-template-columns: 1fr; gap: 15px;"></div>
         </div>
@@ -32,19 +31,18 @@ function loadPenagihanData() {
     
     if (!listContainer) return;
 
-    // 🔒 Tombol Generate Tagihan HANYA untuk Admin
-    if (currentRole === 'admin') {
+    // 🔒 1. TOMBOL GENERATE TAGIHAN: Dibuka untuk Admin dan Bendahara
+    if (currentRole === 'admin' || currentRole === 'bendahara') {
         wadahBtnGen.innerHTML = `<button onclick="generateTagihan()" style="padding: 8px 15px; background: #eab308; color: #1e293b; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">⚡ Buat Tagihan</button>`;
     } else {
         wadahBtnGen.innerHTML = ``;
     }
 
-    // Fungsi Super Admin: Kurangi saldo bulan semua warga (Tagihan datang)
     window.generateTagihan = function() {
         if(confirm("Buat tagihan baru untuk bulan ini? (Saldo bulan setiap warga akan dikurangi 1 otomatis)")) {
             dataTagihan.forEach(warga => {
                 if (warga.statusRumah !== "Kosong") {
-                    warga.saldoBulan -= 1; // Tagihan = saldo berkurang
+                    warga.saldoBulan -= 1; 
                 }
             });
             render();
@@ -52,7 +50,7 @@ function loadPenagihanData() {
         }
     }
 
-    // Fungsi Pembayaran: Tambah saldo bulan (Bayar)
+    // Fungsi Pembayaran
     window.bayarTagihan = function(index) {
         let warga = dataTagihan[index];
         
@@ -73,22 +71,36 @@ function loadPenagihanData() {
             if (isNaN(jmlBayar) || jmlBayar <= 0) {
                 alert("Masukkan angka bulan yang valid ya, Bos!");
             } else {
-                // Tambah saldo bulan karena dia bayar
                 warga.saldoBulan += jmlBayar;
                 
-                let pesanSukses = `Berhasil! Pembayaran ${jmlBayar} bulan untuk ${warga.blok} berhasil dicatat.\n`;
-                if (warga.saldoBulan > 0) {
-                    pesanSukses += `Status sekarang: Lunas ${warga.saldoBulan} bulan ke depan (Deposit).`;
-                } else if (warga.saldoBulan === 0) {
-                    pesanSukses += `Status sekarang: Lunas Pas.`;
-                } else {
-                    pesanSukses += `Sisa tunggakan sekarang: ${Math.abs(warga.saldoBulan)} bulan.`;
+                // Fitur Cetak Bukti Otomatis setelah bayar
+                if(confirm(`Berhasil! Pembayaran ${jmlBayar} bulan untuk ${warga.blok} berhasil dicatat.\n\nApakah Anda ingin mencetak bukti pembayaran (Struk PDF)?`)) {
+                    cetakStruk(warga.blok, warga.penghuni, jmlBayar);
                 }
                 
-                alert(pesanSukses);
                 render();
             }
         }
+    }
+
+    // Fungsi Cetak Struk (Simulasi)
+    window.cetakStruk = function(blok, nama, jumlahBulan) {
+        alert(`🖨️ MENCETAK STRUK...\n\n-- BUKTI PEMBAYARAN KAS RT --\nBlok: ${blok}\nNama: ${nama}\nPembayaran: ${jumlahBulan} Bulan\nStatus: BERHASIL\n\n(Fitur PDF sungguhan bisa ditambahkan nanti)`);
+    }
+
+    // Fungsi Kirim WA Penagihan
+    window.kirimWA = function(index) {
+        let warga = dataTagihan[index];
+        let jumlahNunggak = Math.abs(warga.saldoBulan);
+        
+        // Template pesan WA otomatis
+        let pesan = `Halo Bapak/Ibu ${warga.penghuni} (${warga.blok}).\n\nIni dari Pengurus RT. Izin mengingatkan bahwa ada tagihan iuran kas RT yang belum terselesaikan sebanyak *${jumlahNunggak} Bulan*.\n\nMohon bantuannya untuk segera diselesaikan ya Bapak/Ibu. Terima kasih banyak! 🙏`;
+        
+        // Ubah teks jadi format URL (encode)
+        let pesanURL = encodeURIComponent(pesan);
+        
+        // Buka WhatsApp di tab baru
+        window.open(`https://wa.me/?text=${pesanURL}`, '_blank');
     }
 
     function render() {
@@ -110,7 +122,12 @@ function loadPenagihanData() {
                 borderStyle = `border-left: 4px solid #0284c7;`;
                 
                 if (currentRole === 'admin' || currentRole === 'penagih' || currentRole === 'bendahara') {
-                    btnAksi = `<button onclick="bayarTagihan(${index})" style="padding: 8px 15px; background: #0284c7; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💵 Tambah</button>`;
+                    btnAksi = `
+                        <div style="display: flex; gap: 5px;">
+                            <button onclick="bayarTagihan(${index})" style="padding: 8px 12px; background: #0284c7; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💵 Tambah</button>
+                            <button onclick="cetakStruk('${item.blok}', '${item.penghuni}', 'Deposit')" style="padding: 8px 10px; background: #e2e8f0; color: #475569; border: none; border-radius: 8px; cursor: pointer;" title="Cetak Bukti">🖨️</button>
+                        </div>
+                    `;
                 } else {
                     btnAksi = `<span style="font-size: 0.85rem; color: #0284c7; font-weight: bold;">Aman / Deposit</span>`;
                 }
@@ -121,7 +138,12 @@ function loadPenagihanData() {
                 borderStyle = `border-left: 4px solid #16a34a;`;
                 
                 if (currentRole === 'admin' || currentRole === 'penagih' || currentRole === 'bendahara') {
-                    btnAksi = `<button onclick="bayarTagihan(${index})" style="padding: 8px 15px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💵 Bayar</button>`;
+                    btnAksi = `
+                        <div style="display: flex; gap: 5px;">
+                            <button onclick="bayarTagihan(${index})" style="padding: 8px 12px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💵 Bayar</button>
+                            <button onclick="cetakStruk('${item.blok}', '${item.penghuni}', 'Lunas')" style="padding: 8px 10px; background: #e2e8f0; color: #475569; border: none; border-radius: 8px; cursor: pointer;" title="Cetak Bukti">🖨️</button>
+                        </div>
+                    `;
                 } else {
                     btnAksi = `<span style="font-size: 0.85rem; color: #16a34a; font-weight: bold;">Lunas Bulan Ini</span>`;
                 }
@@ -133,7 +155,12 @@ function loadPenagihanData() {
                 borderStyle = `border-left: 4px solid #dc2626;`;
                 
                 if (currentRole === 'admin' || currentRole === 'penagih' || currentRole === 'bendahara') {
-                    btnAksi = `<button onclick="bayarTagihan(${index})" style="padding: 8px 15px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💵 Bayar</button>`;
+                    btnAksi = `
+                        <div style="display: flex; gap: 5px;">
+                            <button onclick="kirimWA(${index})" style="padding: 8px 10px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;" title="Kirim WA">💬 WA</button>
+                            <button onclick="bayarTagihan(${index})" style="padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💵 Bayar</button>
+                        </div>
+                    `;
                 } else {
                     btnAksi = `<span style="font-size: 0.85rem; color: #dc2626; font-weight: bold;">Segera Lunasi!</span>`;
                 }
