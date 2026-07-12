@@ -1,126 +1,146 @@
 /*==================================================
-   RT DIGITAL - HALAMAN DATA RUMAH & WARGA
+   RT DIGITAL - MODUL DATA RUMAH (DENGAN EDIT)
 ==================================================*/
 
 let dataRumah = [
-    { blok: "A-01", nama: "Bpk. Budi Santoso", status: "Ditempati" },
-    { blok: "A-02", nama: "Belum ada penghuni", status: "Kosong" },
-    { blok: "A-03", nama: "Ibu Siti Aminah", status: "Dikontrak" }
+    { blok: "Blok A-01", penghuni: "Bpk. Budi Santoso", status: "Ditempati" },
+    { blok: "Blok A-02", penghuni: "Belum ada penghuni", status: "Kosong" },
+    { blok: "Blok A-03", penghuni: "Ibu Siti Aminah", status: "Dikontrak" }
 ];
+
+let editIndexRumah = -1; // Penanda: -1 berarti Tambah Baru, angka lain berarti Edit
 
 function RumahPage() {
     setTimeout(loadRumahData, 50);
+
     return `
-        <div id="rumah-container" style="animation: fadeIn 0.3s ease; padding: 20px;">
-            <div style="text-align: center; margin-top: 50px; color: #64748b;">
-                <p>Memuat data warga...</p>
+        <div id="rumah-container" style="padding: 20px; animation: fadeIn 0.3s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #0f766e;">🏘️ Data Rumah</h2>
+                <div id="wadah-btn-rumah"></div>
+            </div>
+            
+            <div id="list-rumah" style="display: grid; grid-template-columns: 1fr; gap: 15px;"></div>
+
+            <div id="modal-rumah" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px);">
+                <div style="background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 350px;">
+                    <h3 id="modal-title-rumah" style="margin-top: 0; margin-bottom: 20px;">Tambah Rumah</h3>
+                    
+                    <label style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 5px;">Nomor Blok:</label>
+                    <input type="text" id="input-blok" placeholder="Misal: Blok A-04" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none;">
+                    
+                    <label style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 5px;">Nama Penghuni:</label>
+                    <input type="text" id="input-penghuni" placeholder="Nama Kepala Keluarga" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none;">
+                    
+                    <label style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 5px;">Status Rumah:</label>
+                    <select id="input-status-rumah" style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none;">
+                        <option value="Ditempati">Ditempati</option>
+                        <option value="Kosong">Kosong</option>
+                        <option value="Dikontrak">Dikontrak</option>
+                    </select>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btn-batal-rumah" style="flex: 1; padding: 10px; border: none; background: #e2e8f0; border-radius: 8px; cursor: pointer;">Batal</button>
+                        <button id="btn-simpan-rumah" style="flex: 1; padding: 10px; border: none; background: #0f766e; color: white; border-radius: 8px; cursor: pointer;">Simpan</button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
 }
 
 function loadRumahData() {
-    const container = document.getElementById("rumah-container");
-    if (!container) return;
-
-    // 🔒 CEK PERAN: Tombol tambah SEKARANG HANYA UNTUK ADMIN (Sesuai aturan baru!)
-    const tombolTambah = (currentRole === 'admin') 
-        ? `<button id="btn-tambah" style="padding: 8px 15px; font-size: 0.9rem; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">+ Tambah</button>` 
-        : ``;
-
-    container.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; color: #0f766e; font-size: 1.5rem;">Data Rumah</h2>
-            ${tombolTambah}
-        </div>
-        
-        <div style="margin-bottom: 20px;">
-            <input type="text" id="input-cari" placeholder="Cari nama atau blok rumah..." style="width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid #e2e8f0; outline: none; font-size: 1rem;">
-        </div>
-        
-        <div id="list-rumah" style="display: flex; flex-direction: column; gap: 12px;"></div>
-
-        <div id="modal-tambah" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px);">
-            <div style="background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 400px;">
-                <h3 style="margin-top: 0; margin-bottom: 20px;">Tambah Warga Baru</h3>
-                <input type="text" id="input-blok" placeholder="Blok (Contoh: A-04)" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none;">
-                <input type="text" id="input-nama" placeholder="Nama Lengkap" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none;">
-                <select id="input-status" style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none;">
-                    <option value="Ditempati">Ditempati</option>
-                    <option value="Dikontrak">Dikontrak</option>
-                    <option value="Kosong">Kosong</option>
-                </select>
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button id="btn-batal" style="padding: 10px 15px; border: none; background: #e2e8f0; border-radius: 8px; cursor: pointer;">Batal</button>
-                    <button id="btn-simpan" style="padding: 10px 15px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer;">Simpan</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    renderListRumah(dataRumah);
-
-    // Fitur Pencarian
-    document.getElementById("input-cari").addEventListener("input", function(e) {
-        const keyword = e.target.value.toLowerCase();
-        renderListRumah(dataRumah.filter(r => r.nama.toLowerCase().includes(keyword) || r.blok.toLowerCase().includes(keyword)));
-    });
-
-    // Logika Modal
-    const btnTambahNode = document.getElementById("btn-tambah");
-    if (btnTambahNode) {
-        const modal = document.getElementById("modal-tambah");
-        btnTambahNode.onclick = () => modal.style.display = "flex";
-        document.getElementById("btn-batal").onclick = () => modal.style.display = "none";
-        
-        document.getElementById("btn-simpan").onclick = () => {
-            const blok = document.getElementById("input-blok").value;
-            const nama = document.getElementById("input-nama").value;
-            const status = document.getElementById("input-status").value;
-
-            if (!blok || !nama) return alert("Blok dan Nama wajib diisi!");
-            
-            dataRumah.unshift({ blok, nama, status });
-            renderListRumah(dataRumah);
-            modal.style.display = "none";
-        };
-    }
-}
-
-function renderListRumah(data) {
     const listContainer = document.getElementById("list-rumah");
-    listContainer.innerHTML = "";
+    const wadahBtn = document.getElementById("wadah-btn-rumah");
+    const modal = document.getElementById("modal-rumah");
+    
+    if (!listContainer) return;
 
-    if (data.length === 0) return listContainer.innerHTML = `<p style="text-align:center; color:#94a3b8;">Data tidak ditemukan.</p>`;
-
-    data.forEach(rumah => {
-        let badgeBg = rumah.status === 'Ditempati' ? '#dcfce7' : (rumah.status === 'Kosong' ? '#fef2f2' : '#fef08a');
-        let badgeColor = rumah.status === 'Ditempati' ? '#16a34a' : (rumah.status === 'Kosong' ? '#dc2626' : '#a16207');
-
-        // 🔒 CEK PERAN: Tombol Hapus (Tong Sampah) HANYA UNTUK ADMIN
-        const btnHapus = (currentRole === 'admin') 
-            ? `<button style="background: transparent; border: none; color: #ef4444; cursor: pointer; margin-left: 10px; font-size: 1.2rem;" onclick="hapusRumah('${rumah.blok}')">🗑️</button>` 
-            : ``;
-
-        listContainer.innerHTML += `
-            <div class="card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; padding: 15px;">
-                <div style="flex: 1;">
-                    <h4 style="margin: 0; color: #0f172a; font-size: 1.1rem;">Blok ${rumah.blok}</h4>
-                    <p style="margin: 3px 0 0 0; font-size: 0.9rem; color: #64748b;">${rumah.nama}</p>
-                </div>
-                <div style="display: flex; align-items: center;">
-                    <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold;">${rumah.status}</span>
-                    ${btnHapus}
-                </div>
-            </div>
-        `;
-    });
-}
-
-// Fungsi Hapus Data
-window.hapusRumah = function(blok) {
-    if(confirm(`Yakin ingin menghapus warga di Blok ${blok}?`)) {
-        dataRumah = dataRumah.filter(r => r.blok !== blok);
-        renderListRumah(dataRumah);
+    // 🔒 Tombol Tambah hanya untuk Admin
+    if (currentRole === 'admin') {
+        wadahBtn.innerHTML = `<button id="btn-tambah-rumah" style="padding: 8px 15px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">+ Tambah</button>`;
+        
+        document.getElementById("btn-tambah-rumah").onclick = () => {
+            editIndexRumah = -1; // Set mode Tambah
+            document.getElementById("modal-title-rumah").innerText = "Tambah Rumah Baru";
+            document.getElementById("input-blok").value = "";
+            document.getElementById("input-penghuni").value = "";
+            document.getElementById("input-status-rumah").value = "Ditempati";
+            modal.style.display = "flex";
+        };
+    } else {
+        wadahBtn.innerHTML = ``;
     }
+
+    document.getElementById("btn-batal-rumah").onclick = () => modal.style.display = "none";
+    
+    document.getElementById("btn-simpan-rumah").onclick = () => {
+        const blok = document.getElementById("input-blok").value;
+        const penghuni = document.getElementById("input-penghuni").value;
+        const status = document.getElementById("input-status-rumah").value;
+
+        if (!blok || !penghuni) return alert("Blok dan Nama Penghuni harus diisi!");
+
+        if (editIndexRumah === -1) {
+            // Mode Tambah
+            dataRumah.push({ blok, penghuni, status });
+        } else {
+            // Mode Edit
+            dataRumah[editIndexRumah] = { blok, penghuni, status };
+        }
+
+        render();
+        modal.style.display = "none";
+    };
+
+    function render() {
+        listContainer.innerHTML = "";
+        
+        dataRumah.forEach((item, index) => {
+            let badgeColor = item.status === 'Kosong' ? '#dc2626' : (item.status === 'Dikontrak' ? '#eab308' : '#16a34a');
+            let badgeBg = item.status === 'Kosong' ? '#fef2f2' : (item.status === 'Dikontrak' ? '#fefce8' : '#dcfce7');
+
+            // 🔒 Tombol Edit & Hapus hanya untuk Admin
+            let actionButtons = ``;
+            if (currentRole === 'admin') {
+                actionButtons = `
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="editRumah(${index})" style="background: transparent; border: none; cursor: pointer; font-size: 1.2rem;" title="Edit Data">✏️</button>
+                        <button onclick="hapusRumah(${index})" style="background: transparent; border: none; cursor: pointer; font-size: 1.2rem; color: #ef4444;" title="Hapus">🗑️</button>
+                    </div>
+                `;
+            }
+
+            listContainer.innerHTML += `
+                <div class="card" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; color: #1e293b;">${item.blok}</h3>
+                        <p style="margin: 0 0 8px 0; color: #64748b; font-size: 0.9rem;">${item.penghuni}</p>
+                        <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">${item.status}</span>
+                    </div>
+                    ${actionButtons}
+                </div>
+            `;
+        });
+    }
+
+    // Fungsi Trigger Edit
+    window.editRumah = function(index) {
+        editIndexRumah = index;
+        document.getElementById("modal-title-rumah").innerText = "Edit Data Rumah";
+        document.getElementById("input-blok").value = dataRumah[index].blok;
+        document.getElementById("input-penghuni").value = dataRumah[index].penghuni;
+        document.getElementById("input-status-rumah").value = dataRumah[index].status;
+        modal.style.display = "flex";
+    }
+
+    // Fungsi Hapus
+    window.hapusRumah = function(index) {
+        if(confirm("Yakin ingin menghapus data rumah ini?")) {
+            dataRumah.splice(index, 1);
+            render();
+        }
+    }
+
+    render();
 }
