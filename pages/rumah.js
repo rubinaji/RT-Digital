@@ -22,7 +22,7 @@ async function rumahPage() {
     if (respon.status === "success") {
         globalDataRumah = respon.data; // Simpan ke variabel lokal untuk dirender
         
-        // 3. Render kerangka halaman dan kerangka Modal
+        // 3. Render kerangka halaman dan kerangka Modal (Dropdown RT/RW sudah diubah jadi Input Bebas)
         mainContent.innerHTML = `
             <div id="rumah-container" style="padding: 20px; animation: fadeIn 0.3s ease;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -48,18 +48,11 @@ async function rumahPage() {
                         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                             <div style="flex: 1;">
                                 <label style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 5px;">RT:</label>
-                                <select id="input-rt" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; background: white;">
-                                    <option value="01">RT 01</option>
-                                    <option value="02">RT 02</option>
-                                    <option value="03">RT 03</option>
-                                </select>
+                                <input type="text" id="input-rt" placeholder="Misal: 04" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; background: white;">
                             </div>
                             <div style="flex: 1;">
                                 <label style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 5px;">RW:</label>
-                                <select id="input-rw" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; background: white;">
-                                    <option value="05">RW 05</option>
-                                    <option value="06">RW 06</option>
-                                </select>
+                                <input type="text" id="input-rw" placeholder="Misal: 05" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; background: white;">
                             </div>
                         </div>
 
@@ -86,15 +79,11 @@ async function rumahPage() {
     }
 }
 
-// ==========================================================
-// FUNGSI LOGIKA TOMBOL & RENDER KARTU RUMAH
-// ==========================================================
 function setupRumahLogic() {
     const listContainer = document.getElementById("list-rumah");
     const wadahBtn = document.getElementById("wadah-btn-rumah");
     const modal = document.getElementById("modal-rumah");
     
-    // Tampilkan tombol "+ Tambah" khusus untuk Admin & Bendahara
     if (currentRole === 'admin' || currentRole === 'bendahara') {
         wadahBtn.innerHTML = `<button id="btn-tambah-rumah" style="padding: 8px 15px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">+ Tambah</button>`;
         
@@ -115,7 +104,6 @@ function setupRumahLogic() {
 
     document.getElementById("btn-batal-rumah").onclick = () => modal.style.display = "none";
     
-    // LOGIKA SIMPAN DATA KE GOOGLE SHEET
     document.getElementById("btn-simpan-rumah").onclick = async () => {
         const btnSimpan = document.getElementById("btn-simpan-rumah");
         
@@ -132,7 +120,6 @@ function setupRumahLogic() {
         btnSimpan.disabled = true;
 
         if (editIndexRumah === -1) {
-            // KIRIM DATA BARU KE BACKEND (api.js -> tambahRumah)
             let res = await api("tambahRumah", {
                 blok: blok,
                 rtrw: `RT ${rt}/RW ${rw}`,
@@ -144,12 +131,11 @@ function setupRumahLogic() {
             if(res.status === "success") {
                 alert("Berhasil menyimpan rumah baru ke database!");
                 modal.style.display = "none";
-                navigate("rumah"); // Refresh halaman secara otomatis
+                navigate("rumah"); 
             } else {
                 alert("Gagal menyimpan: " + res.message);
             }
         } else {
-            // Placeholder: Fitur Update/Delete akan disediakan di pengembangan API berikutnya
             alert("⚠️ Fitur edit data langsung ke database sedang dikembangkan.");
             modal.style.display = "none";
         }
@@ -158,7 +144,6 @@ function setupRumahLogic() {
         btnSimpan.disabled = false;
     };
 
-    // Fungsi menggambar ulang kartu-kartu rumah dari data Sheet
     function renderKartuRumah() {
         listContainer.innerHTML = "";
         
@@ -186,7 +171,6 @@ function setupRumahLogic() {
                 `;
             }
 
-            // Variabel "item.nama", "item.wa", "item.rtrw" sesuai response properti backend dari Google Apps Script
             listContainer.innerHTML += `
                 <div class="card" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
                     <div>
@@ -204,17 +188,23 @@ function setupRumahLogic() {
         });
     }
 
-    // Modal Edit Interaktif
     window.editRumah = function(index) {
         editIndexRumah = index;
         document.getElementById("modal-title-rumah").innerText = "Edit Data Rumah";
         document.getElementById("input-blok").value = globalDataRumah[index].blok;
         document.getElementById("input-penghuni").value = globalDataRumah[index].nama;
         document.getElementById("input-wa").value = globalDataRumah[index].wa || "";
+        
+        // Ekstrak angka dari string "RT 01/RW 05" agar otomatis masuk kolom saat edit
+        let rtrwRaw = globalDataRumah[index].rtrw || "RT 01/RW 05";
+        let matchRt = rtrwRaw.match(/RT\s*(\d+)/i);
+        let matchRw = rtrwRaw.match(/RW\s*(\d+)/i);
+        document.getElementById("input-rt").value = matchRt ? matchRt[1] : "01";
+        document.getElementById("input-rw").value = matchRw ? matchRw[1] : "05";
+        
         document.getElementById("input-status-rumah").value = globalDataRumah[index].status || "Ditempati";
         modal.style.display = "flex";
     }
 
-    // Jalankan render awal
     renderKartuRumah();
 }
