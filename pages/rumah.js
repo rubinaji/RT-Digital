@@ -1,6 +1,6 @@
 /*==================================================
    RT DIGITAL - MODUL DATA RUMAH (REAL-TIME GOOGLE SHEETS)
-   (SESUAI MATRIKS HAK AKSES RESMI - ANTI HURUF BESAR KECIL)
+   (SESUAI MATRIKS HAK AKSES RESMI - TARIF 40K VS 25K)
 ==================================================*/
 
 let globalDataRumah = [];
@@ -10,7 +10,6 @@ async function rumahPage() {
     const mainContent = document.getElementById("main-content");
     if (!mainContent) return;
 
-    // Bersihkan spasi dan buat huruf kecil semua agar tidak salah deteksi role
     let roleBersih = (currentRole || "").toLowerCase().trim();
 
     mainContent.innerHTML = `
@@ -60,12 +59,13 @@ async function rumahPage() {
                             </div>
                         </div>
 
-                        <label style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 5px;">Status Rumah:</label>
-                        <select id="input-status-rumah" style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; background: white;">
-                            <option value="Ditempati">Ditempati</option>
-                            <option value="Kosong">Kosong</option>
-                            <option value="Dikontrak">Dikontrak</option>
-                            <option value="Lunas">Lunas</option>
+                        <label style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 5px;">Kondisi & Tarif Rumah:</label>
+                        <select id="input-status-rumah" style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; background: white; color: #1e293b; font-weight: 600;">
+                            <option value="Ditempati">🏡 Ditempati (Rp 40.000)</option>
+                            <option value="Dikontrak">🏢 Dikontrak (Rp 40.000)</option>
+                            <option value="Kosong">🚪 Tidak Ditempati / Kosong (Rp 25.000)</option>
+                            <option value="Belum Bayar">⚠️ Belum Bayar (Reset Tagihan)</option>
+                            <option value="Lunas">✅ Lunas (Bulan Ini)</option>
                         </select>
                         
                         <div style="display: flex; gap: 10px;">
@@ -172,12 +172,33 @@ function setupRumahLogic() {
 
         dataTersaring.forEach((item) => {
             let propertiStatus = item.status || "Kosong";
-            let badgeColor = propertiStatus.toLowerCase() === 'kosong' ? '#dc2626' : (propertiStatus.toLowerCase() === 'dikontrak' ? '#eab308' : '#16a34a');
-            let badgeBg = propertiStatus.toLowerCase() === 'kosong' ? '#fef2f2' : (propertiStatus.toLowerCase() === 'dikontrak' ? '#fefce8' : '#dcfce7');
+            let statusClean = propertiStatus.toLowerCase().trim();
+            
+            // Tentukan warna label kartu sesuai matriks tarif baru
+            let badgeColor = '#16a34a'; // Default lunas/ditempati
+            let badgeBg = '#dcfce7';
+            let labelTampilan = propertiStatus;
+
+            if (statusClean === 'kosong') {
+                badgeColor = '#dc2626';
+                badgeBg = '#fef2f2';
+                labelTampilan = "🚪 Tidak Ditempati (25k)";
+            } else if (statusClean === 'ditempati') {
+                badgeColor = '#0f766e';
+                badgeBg = '#ccfbf1';
+                labelTampilan = "🏡 Ditempati (40k)";
+            } else if (statusClean === 'dikontrak') {
+                badgeColor = '#eab308';
+                badgeBg = '#fefce8';
+                labelTampilan = "🏢 Dikontrak (40k)";
+            } else if (statusClean === 'lunas') {
+                badgeColor = '#16a34a';
+                badgeBg = '#dcfce7';
+                labelTampilan = "✅ Lunas Bulan Ini";
+            }
 
             let actionButtons = ``;
             if (roleBersih === 'admin' || roleBersih === 'bendahara') {
-                // 👑 KUNCI RESMI: Hanya peran ADMIN (case-insensitive) yang memunculkan tombol hapus sampah merah!
                 let btnHapusOtoritas = (roleBersih === 'admin') 
                     ? `<button onclick="aksiHapusWargaServer('${item.blok}')" style="background: transparent; border: none; cursor: pointer; font-size: 1.2rem; color: #ef4444; margin-left: 12px; vertical-align: middle;" title="Hapus Permanen">🗑️</button>`
                     : ``;
@@ -199,7 +220,7 @@ function setupRumahLogic() {
                         </div>
                         <p style="margin: 0 0 5px 0; color: #64748b; font-size: 0.88rem; font-weight:500;">${item.nama}</p>
                         ${item.wa ? `<p style="margin: 0 0 8px 0; color: #22c55e; font-size: 0.8rem; font-weight: bold;">📞 +${item.wa}</p>` : `<p style="margin: 0 0 8px 0; color: #94a3b8; font-size: 0.8rem; font-style: italic;">No WA Tidak Terdaftar</p>`}
-                        <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; border: 1px solid ${badgeBg};">${propertiStatus}</span>
+                        <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; border: 1px solid ${badgeBg};">${labelTampilan}</span>
                     </div>
                     ${actionButtons}
                 </div>
@@ -231,17 +252,4 @@ function setupRumahLogic() {
         modal.style.display = "flex";
     };
 
-    window.aksiHapusWargaServer = async function(nomorBlok) {
-        if (confirm(`⚠️ PENTING: Apakah Anda yakin ingin MENGHAPUS secara permanen seluruh data warga Blok ${nomorBlok} dari database Google Sheets?`)) {
-            let res = await api("hapusRumah", { blok: nomorBlok });
-            if (res.status === "success") {
-                alert("✅ Sukses! Data warga berhasil dihapus bersih dari database.");
-                rumahPage();
-            } else {
-                alert("❌ Gagal menghapus data: " + res.message);
-            }
-        }
-    };
-
-    renderKartuRumah();
-}
+    window.aksiHapusWargaServer = async function(nomorBl
