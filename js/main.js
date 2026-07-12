@@ -3,6 +3,7 @@
 ==================================================*/
 
 let currentRole = "admin";
+window.myBlok = "Blok A-03"; // Default login simulasi warga
 
 function renderBottomNav() {
     const navContainer = document.querySelector(".bottom-nav");
@@ -17,10 +18,8 @@ function renderBottomNav() {
 
     let navItems = [];
 
-    // 1. HOME (Menu Wajib Semua Peran)
     navItems.push({ id: 'dashboard', icon: '🏠', text: 'Home' });
 
-    // 2. LOGIKA MENU BERDASARKAN PERAN
     if (currentRole === 'admin') {
         navItems.push({ id: 'rumah', icon: '🏘️', text: 'Rumah' });
         navItems.push({ id: 'keuangan', icon: '💰', text: 'Keuangan' });
@@ -39,7 +38,7 @@ function renderBottomNav() {
     else if (currentRole === 'warga') {
         navItems.push({ id: 'keuangan', icon: '💰', text: 'Kas RT' }); 
         navItems.push({ id: 'penagihan', icon: '📋', text: 'Tagihan' });
-        navItems.push({ id: 'lainnya', icon: '☰', text: 'Lainnya' }); // 🔓 WARGA BISA AKSES MENU LAINNYA!
+        navItems.push({ id: 'lainnya', icon: '☰', text: 'Lainnya' });
     }
 
     navContainer.innerHTML = navItems.map(item => `
@@ -55,6 +54,13 @@ function renderBottomNav() {
 
 function changeRole(role) {
     currentRole = role;
+    
+    // 🔒 SIMULASI LOGIN: Sistem akan bertanya ini rumah siapa
+    if (role === 'warga') {
+        let cekBlok = prompt("Simulasi Login Warga:\\nMasukkan Nomor Blok Anda (Contoh: Blok A-03)", window.myBlok);
+        if (cekBlok) window.myBlok = cekBlok;
+    }
+
     renderBottomNav();
     navigate("dashboard");
 }
