@@ -119,13 +119,10 @@ function setupRumahLogic() {
         btnSimpan.innerText = "Menyimpan...";
         btnSimpan.disabled = true;
 
-        if (editIndexRumah === -1) {
+        ifif (editIndexRumah === -1) {
+            // ... (KODE TAMBAH RUMAH YANG SUDAH ADA, JANGAN DIUBAH) ...
             let res = await api("tambahRumah", {
-                blok: blok,
-                rtrw: `RT ${rt}/RW ${rw}`,
-                nama: penghuni,
-                wa: noWA,
-                status: status
+                blok: blok, rtrw: `RT ${rt}/RW ${rw}`, nama: penghuni, wa: noWA, status: status
             });
 
             if(res.status === "success") {
@@ -136,8 +133,22 @@ function setupRumahLogic() {
                 alert("Gagal menyimpan: " + res.message);
             }
         } else {
-            alert("⚠️ Fitur edit data langsung ke database sedang dikembangkan.");
-            modal.style.display = "none";
+            // FITUR EDIT SEKARANG SUDAH HIDUP! 🚀
+            let res = await api("editRumah", {
+                blok: blok,  // Ini yang jadi kunci pencarian di Sheet
+                rtrw: `RT ${rt}/RW ${rw}`,
+                nama: penghuni,
+                wa: noWA,
+                status: status
+            });
+
+            if(res.status === "success") {
+                alert("Berhasil memperbarui data rumah!");
+                modal.style.display = "none";
+                navigate("rumah"); // Refresh halaman otomatis
+            } else {
+                alert("Gagal update: " + res.message);
+            }
         }
 
         btnSimpan.innerText = "Simpan";
