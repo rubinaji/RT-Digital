@@ -23,8 +23,8 @@ function loadRumahData() {
     const container = document.getElementById("rumah-container");
     if (!container) return;
 
-    // CEK PERAN: Tombol tambah HANYA muncul untuk Admin dan Bendahara
-    const tombolTambah = (currentRole === 'admin' || currentRole === 'bendahara') 
+    // 🔒 CEK PERAN: Tombol tambah SEKARANG HANYA UNTUK ADMIN (Sesuai aturan baru!)
+    const tombolTambah = (currentRole === 'admin') 
         ? `<button id="btn-tambah" style="padding: 8px 15px; font-size: 0.9rem; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">+ Tambah</button>` 
         : ``;
 
@@ -66,7 +66,7 @@ function loadRumahData() {
         renderListRumah(dataRumah.filter(r => r.nama.toLowerCase().includes(keyword) || r.blok.toLowerCase().includes(keyword)));
     });
 
-    // Logika Modal (Hanya dipasang jika tombol tambah dirender)
+    // Logika Modal
     const btnTambahNode = document.getElementById("btn-tambah");
     if (btnTambahNode) {
         const modal = document.getElementById("modal-tambah");
@@ -97,8 +97,8 @@ function renderListRumah(data) {
         let badgeBg = rumah.status === 'Ditempati' ? '#dcfce7' : (rumah.status === 'Kosong' ? '#fef2f2' : '#fef08a');
         let badgeColor = rumah.status === 'Ditempati' ? '#16a34a' : (rumah.status === 'Kosong' ? '#dc2626' : '#a16207');
 
-        // CEK PERAN: Tombol Hapus (Tong Sampah) hanya untuk Admin dan Bendahara
-        const btnHapus = (currentRole === 'admin' || currentRole === 'bendahara') 
+        // 🔒 CEK PERAN: Tombol Hapus (Tong Sampah) HANYA UNTUK ADMIN
+        const btnHapus = (currentRole === 'admin') 
             ? `<button style="background: transparent; border: none; color: #ef4444; cursor: pointer; margin-left: 10px; font-size: 1.2rem;" onclick="hapusRumah('${rumah.blok}')">🗑️</button>` 
             : ``;
 
