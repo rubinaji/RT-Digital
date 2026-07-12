@@ -1,13 +1,13 @@
 /*==================================================
-   RT DIGITAL - MODUL PENAGIHAN (SOP PENAGIH 100%)
+   RT DIGITAL - MODUL PENAGIHAN (SOP FULL VERIFIKASI TF)
 ==================================================*/
 
-// Data ditambahkan properti 'rt' dan 'rw' untuk kebutuhan filter
+// Ditambahkan properti 'menungguVerifikasi' dan 'konfirmasiTf' untuk simulasi upload warga
 let dataTagihan = [
-    { blok: "Blok A-01", penghuni: "Bpk. Budi Santoso", statusRumah: "Ditempati", saldoBulan: 0, catatan: "", statusLapangan: "", rt: "01", rw: "05" },
-    { blok: "Blok A-02", penghuni: "Belum ada penghuni", statusRumah: "Kosong", saldoBulan: 0, catatan: "", statusLapangan: "Rumah Kosong", rt: "01", rw: "05" },
-    { blok: "Blok A-03", penghuni: "Ibu Siti Aminah", statusRumah: "Dikontrak", saldoBulan: -3, catatan: "Sering ke luar kota.", statusLapangan: "Sulit Ditemui", rt: "02", rw: "05" }, 
-    { blok: "Blok A-04", penghuni: "Bpk. Eko Prasetyo", statusRumah: "Ditempati", saldoBulan: 12, catatan: "", statusLapangan: "", rt: "02", rw: "05" } 
+    { blok: "Blok A-01", penghuni: "Bpk. Budi Santoso", statusRumah: "Ditempati", saldoBulan: 0, catatan: "", statusLapangan: "", rt: "01", rw: "05", menungguVerifikasi: false, konfirmasiTf: 0 },
+    { blok: "Blok A-02", penghuni: "Belum ada penghuni", statusRumah: "Kosong", saldoBulan: 0, catatan: "", statusLapangan: "Rumah Kosong", rt: "01", rw: "05", menungguVerifikasi: false, konfirmasiTf: 0 },
+    { blok: "Blok A-03", penghuni: "Ibu Siti Aminah", statusRumah: "Dikontrak", saldoBulan: -3, catatan: "Sering ke luar kota.", statusLapangan: "Sulit Ditemui", rt: "02", rw: "05", menungguVerifikasi: true, konfirmasiTf: 2 }, // Contoh: Bu Siti ceritanya sudah TF 2 bulan, tinggal diverifikasi
+    { blok: "Blok A-04", penghuni: "Bpk. Eko Prasetyo", statusRumah: "Ditempati", saldoBulan: 12, catatan: "", statusLapangan: "", rt: "02", rw: "05", menungguVerifikasi: false, konfirmasiTf: 0 } 
 ];
 
 let queryCari = ""; 
@@ -23,7 +23,7 @@ function PenagihanPage() {
                 <h2 style="margin: 0; color: #0f766e;">📋 Penagihan</h2>
                 <div id="wadah-btn-generate"></div>
             </div>
-            <p style="color: #64748b; font-size: 0.9rem; margin-top: 0; margin-bottom: 20px;">Kelola status bayar dan pantauan lapangan.</p>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 0; margin-bottom: 20px;">Kelola status bayar dan verifikasi transfer warga.</p>
             
             <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
                 <div style="position: relative;">
@@ -51,7 +51,6 @@ function PenagihanPage() {
     `;
 }
 
-// Fungsi Trigger Pencarian & Filter
 window.cariTagihan = function(val) { queryCari = val.toLowerCase(); if(window.renderListPenagihan) window.renderListPenagihan(); }
 window.filterRT = function(val) { queryRT = val; if(window.renderListPenagihan) window.renderListPenagihan(); }
 window.filterRW = function(val) { queryRW = val; if(window.renderListPenagihan) window.renderListPenagihan(); }
@@ -76,6 +75,38 @@ function loadPenagihanData() {
         }
     }
 
+    // FUNGSI WARGA: Upload Bukti TF
+    window.uploadBukti = function(index) {
+        let warga = dataTagihan[index];
+        let inputBulan = prompt(`Bapak/Ibu ${warga.penghuni}, Anda menunggak ${Math.abs(warga.saldoBulan)} bulan.\n\nBerapa bulan yang sudah Anda transfer? (Ketik angka saja)`, "1");
+        
+        if (inputBulan !== null && inputBulan !== "") {
+            let jml = parseInt(inputBulan);
+            if (isNaN(jml) || jml <= 0) {
+                alert("Masukkan jumlah bulan yang valid!");
+            } else {
+                warga.menungguVerifikasi = true;
+                warga.konfirmasiTf = jml;
+                alert("Sukses mengunggah bukti transfer! Status Anda sekarang 'Menunggu Verifikasi' dari Bendahara RT.");
+                window.renderListPenagihan();
+            }
+        }
+    }
+
+    // FUNGSI ADMIN / BENDAHARA: Verifikasi Uang Masuk dari Warga
+    window.verifikasiTf = function(index) {
+        let warga = dataTagihan[index];
+        if(confirm(`📄 BUKTI TRANSFER PENGURUS RT\n\nPengirim: ${warga.penghuni} (${warga.blok})\nKlaim Pembayaran: ${warga.konfirmasiTf} Bulan\n\nApakah Anda sudah mengecek rekening dan ingin MENYETUJUI pembayaran ini?`)) {
+            warga.saldoBulan += warga.konfirmasiTf;
+            warga.menungguVerifikasi = false;
+            warga.konfirmasiTf = 0;
+            warga.statusLapangan = "Sudah Bayar";
+            alert("Pembayaran transfer disetujuiPermanen! Saldo kas warga berhasil diperbarui.");
+            window.renderListPenagihan();
+        }
+    }
+
+    // FUNGSI BENDAHARA: Bayar Cash Manual
     window.bayarTagihan = function(index) {
         let warga = dataTagihan[index];
         let bayarBerapa = prompt(`Bapak/Ibu ${warga.penghuni} (${warga.blok}).\n\nMau bayar/deposit untuk berapa bulan? (Ketik angka saja)`, "1");
@@ -87,7 +118,7 @@ function loadPenagihanData() {
             } else {
                 warga.saldoBulan += jmlBayar;
                 if (warga.saldoBulan >= 0) warga.statusLapangan = "Sudah Bayar";
-                if(confirm(`Berhasil! Pembayaran ${jmlBayar} bulan untuk ${warga.blok} berhasil dicatat.\n\nCetak bukti (Struk PDF)?`)) {
+                if(confirm(`Berhasil dicatat!\n\nCetak bukti (Struk PDF)?`)) {
                     alert(`🖨️ MENCETAK STRUK...\n\nBlok: ${warga.blok}\nNama: ${warga.penghuni}\nBayar: ${jmlBayar} Bulan\nStatus: BERHASIL`);
                 }
                 window.renderListPenagihan();
@@ -120,12 +151,10 @@ function loadPenagihanData() {
     window.renderListPenagihan = function() {
         listContainer.innerHTML = "";
         
-        // 🔥 LOGIKA FILTER PINTAR: Cek Teks Pencarian + Cek Pilihan RT + Cek Pilihan RW
         let filteredData = dataTagihan.filter(item => {
             let cocokTeks = item.blok.toLowerCase().includes(queryCari) || item.penghuni.toLowerCase().includes(queryCari) || item.catatan.toLowerCase().includes(queryCari);
             let cocokRT = (queryRT === "Semua") ? true : (item.rt === queryRT);
             let cocokRW = (queryRW === "Semua") ? true : (item.rw === queryRW);
-            
             return cocokTeks && cocokRT && cocokRW;
         });
 
@@ -152,16 +181,32 @@ function loadPenagihanData() {
             let btnCatatan = (currentRole === 'admin' || currentRole === 'penagih') ? `<button onclick="editCatatan(${indexOriginal})" style="padding: 6px; background: transparent; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; color: #64748b;" title="Catatan Lapangan">📝</button>` : ``;
             let btnTandai = (currentRole === 'admin' || currentRole === 'penagih') ? `<button onclick="tandaiStatus(${indexOriginal})" style="padding: 6px; background: transparent; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; color: #64748b;" title="Tandai Status">📌</button>` : ``;
             
+            // LOGIKA UTAMA UI BERDASARKAN PERAN & APALAH ADA PROSES TF MENUNGU VERIFIKASI
             if (item.statusRumah === 'Kosong') {
                 statusBadge = `<span style="color: #64748b; font-size: 0.75rem; font-weight: bold;">Rumah Kosong</span>`;
-            } else if (item.saldoBulan >= 0) {
+            } 
+            else if (item.menungguVerifikasi) {
+                // STATUS SEDANG DI-VERIFIKASI TRANSFER
+                statusBadge = `<span style="background: #fef2f2; color: #d97706; font-size: 0.75rem; font-weight: bold; animation: pulse 2s infinite; padding: 2px 6px; border-radius: 6px;">⏳ Verifikasi TF (+${item.konfirmasiTf} Bln)</span>`;
+                borderStyle = `border-left: 4px solid #eab308; background: #fffbf0;`;
+                
+                if (currentRole === 'admin' || currentRole === 'bendahara') {
+                    uiAksi = `<button onclick="verifikasiTf(${indexOriginal})" style="padding: 8px 12px; background: #d97706; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">👁️ Cek TF</button>`;
+                } else if (currentRole === 'warga') {
+                    uiAksi = `<span style="font-size: 0.8rem; color: #d97706; font-weight: bold;">⏳ Diproses RT</span>`;
+                }
+            } 
+            else if (item.saldoBulan >= 0) {
+                // STATUS LUNAS
                 statusBadge = `<span style="color: #16a34a; font-size: 0.75rem; font-weight: bold;">Lunas ${item.saldoBulan > 0 ? '+Deposit' : ''}</span>`;
                 borderStyle = `border-left: 4px solid #16a34a;`;
                 
                 if (currentRole === 'admin' || currentRole === 'bendahara') {
                     uiAksi = `<button onclick="bayarTagihan(${indexOriginal})" style="padding: 8px 12px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💵 Bayar</button>`;
                 }
-            } else {
+            } 
+            else {
+                // STATUS MENUNGGAK
                 statusBadge = `<span style="color: #dc2626; font-size: 0.75rem; font-weight: bold;">Nunggak ${Math.abs(item.saldoBulan)} Bln</span>`;
                 borderStyle = `border-left: 4px solid #dc2626;`;
                 
@@ -172,6 +217,8 @@ function loadPenagihanData() {
                             <button onclick="bayarTagihan(${indexOriginal})" style="padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💵 Bayar</button>
                         </div>
                     `;
+                } else if (currentRole === 'warga') {
+                    uiAksi = `<button onclick="uploadBukti(${indexOriginal})" style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">📤 Upload Bukti</button>`;
                 }
             }
 
