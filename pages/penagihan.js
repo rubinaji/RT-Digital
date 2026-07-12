@@ -1,6 +1,6 @@
 /*==================================================
    RT DIGITAL - MODUL PENAGIHAN KONEKSI DATABASES REAL
-   (DIFERENSIASI TARIF: 40K DITEMPATI VS 25K KOSONG)
+   (PERBAIKAN TOTAL V8: INTEGRASI TARIF & MULTI-MONTHS)
 ==================================================*/
 let globalTagihan = [];
 let tabAktifPenagihan = "penagihan-wa";
@@ -33,6 +33,8 @@ async function penagihanPage() {
     if (respon.status === "success") {
         globalTagihan = respon.data;
         renderSubTabPenagihan();
+    } else {
+        document.getElementById("konten-sub-tab").innerHTML = `<div style="text-align:center; padding:20px; color:red;">❌ Gagal memuat data dari database.</div>`;
     }
 }
 
@@ -54,22 +56,22 @@ function renderSubTabPenagihan() {
     if(tabAktifPenagihan === "pembayaran" && tBayar) { tBayar.style.background="white"; tBayar.style.color="#0f766e"; }
     if(tabAktifPenagihan === "atur-tagihan" && tAtur) { tAtur.style.background="white"; tAtur.style.color="#0f766e"; }
 
-    // TAB 1: LIST TUNGGAKAN BROADCAST WA
+    // TAB 1: LIST TUNGGAKAN & BROADCAST TELEPON WA
     if (tabAktifPenagihan === "penagihan-wa") {
         if (globalTagihan.length === 0) {
-            wadah.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">🎉 Semua rumah sudah lunas bulan ini!</div>`;
+            wadah.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">🎉 Semua rumah warga sudah lunas murni bulan ini!</div>`;
             return;
         }
         wadah.innerHTML = globalTagihan.map(warga => {
-            let statusClean = (warga.status || "").toLowerCase().trim();
-            let isDitempati = (statusClean === "ditempati" || statusClean === "dikontrak");
+            let kondisiClean = (warga.kondisi || "").toLowerCase().trim();
+            let isDitempati = (kondisiClean === "ditempati" || kondisiClean === "dikontrak");
             let tarifBase = isDitempati ? 40000 : 25000;
             let tipeLabel = isDitempati ? "🏡 Berpenghuni" : "🚪 Kosong/Tidak Ditempati";
 
             return `
                 <div class="card" style="padding:15px; background:white; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <h4 style="margin:0;">Blok ${warga.blok} - ${warga.nama}</h4>
+                        <h4 style="margin:0; color:#1e293b;">Blok ${warga.blok} - ${warga.nama}</h4>
                         <div style="margin:4px 0; display:flex; gap:6px; flex-wrap:wrap;">
                             <span style="background:#fef2f2; color:#dc2626; font-size:0.68rem; padding:2px 6px; border-radius:4px; font-weight:bold;">Tarif: Rp ${tarifBase.toLocaleString('id-ID')}</span>
                             <span style="background:#f1f5f9; color:#475569; font-size:0.68rem; padding:2px 6px; border-radius:4px; font-weight:500;">${tipeLabel}</span>
@@ -85,7 +87,7 @@ function renderSubTabPenagihan() {
         }).join('');
     }
 
-    // TAB 2: PROSES BAYAR IURAN DINAMIS & PILIHAN 12 BULAN
+    // TAB 2: PROSES BAYAR IURAN DINAMIS & PILIHAN KALKULATOR 12 BULAN
     if (tabAktifPenagihan === "pembayaran") {
         if (globalTagihan.length === 0) {
             wadah.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">🎉 Semua warga sudah lunas!</div>`;
@@ -98,8 +100,8 @@ function renderSubTabPenagihan() {
                 <p style="margin:0; color:#64748b; font-size:0.75rem;">Sistem otomatis memisahkan tarif berpenghuni (40k) dan rumah kosong (25k).</p>
             </div>
             ${globalTagihan.map((warga, idx) => {
-                let statusClean = (warga.status || "").toLowerCase().trim();
-                let isDitempati = (statusClean === "ditempati" || statusClean === "dikontrak");
+                let kondisiClean = (warga.kondisi || "").toLowerCase().trim();
+                let isDitempati = (kondisiClean === "ditempati" || kondisiClean === "dikontrak");
                 let tarifBase = isDitempati ? 40000 : 25000;
                 let tipeLabel = isDitempati ? "Berpenghuni (40k/bln)" : "Kosong (25k/bln)";
 
@@ -138,7 +140,7 @@ function renderSubTabPenagihan() {
         `;
     }
 
-    // TAB 3: ADMINISTRASI RESET PERIODE
+    // TAB 3: ADMINISTRASI RESET PERIODE BULANAN
     if (tabAktifPenagihan === "atur-tagihan") {
         if(roleBersih !== 'admin' && roleBersih !== 'bendahara') {
             wadah.innerHTML = "🔒 Menu Khusus Admin / Bendahara.";
@@ -148,7 +150,7 @@ function renderSubTabPenagihan() {
             <div style="padding:20px; text-align:center; background:#f8fafc; border:2px dashed #cbd5e1; border-radius:12px;">
                 <h3>🔄 Perbarui Periode Baru</h3>
                 <p>Klik tombol di bawah untuk me-reset status seluruh warga yang 'Lunas' kembali menjadi 'Belum Bayar' di awal bulan.</p>
-                <button onclick="triggerGenerateTagihanMassal()" style="padding:10px 20px; background:#0f766e; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">🔄 Generate Tagihan Masal</button>
+                <button onclick="triggerGenerateTagihanMassal()" style="padding:10px 20px; background:#dc2626; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">🔄 Generate Tagihan Masal</button>
             </div>
         `;
     }
@@ -159,8 +161,8 @@ window.updateEstimasiTotal = function(idx) {
     let totalEl = document.getElementById(`total-bayar-${idx}`);
     if(!selectEl || !totalEl) return;
     
-    let statusClean = (globalTagihan[idx].status || "").toLowerCase().trim();
-    let tarifBase = (statusClean === "ditempati" || statusClean === "dikontrak") ? 40000 : 25000;
+    let kondisiClean = (globalTagihan[idx].kondisi || "").toLowerCase().trim();
+    let tarifBase = (kondisiClean === "ditempati" || kondisiClean === "dikontrak") ? 40000 : 25000;
     
     let bulan = parseInt(selectEl.value);
     let total = tarifBase * bulan;
@@ -172,11 +174,11 @@ window.prosesSetorIuranServerBanyakBulan = async function(blok, idx) {
     if(!selectEl) return;
     let bulan = parseInt(selectEl.value);
     
-    let statusClean = (globalTagihan[idx].status || "").toLowerCase().trim();
-    let tarifBase = (statusClean === "ditempati" || statusClean === "dikontrak") ? 40000 : 25000;
+    let kondisiClean = (globalTagihan[idx].kondisi || "").toLowerCase().trim();
+    let tarifBase = (kondisiClean === "ditempati" || kondisiClean === "dikontrak") ? 40000 : 25000;
     let totalNominal = tarifBase * bulan;
 
-    if(confirm(`Konfirmasi pelunasan Blok ${blok} (${globalTagihan[idx].status}) sebanyak ${bulan} Bulan dengan total Rp ${totalNominal.toLocaleString('id-ID')}?`)) {
+    if(confirm(`Konfirmasi pelunasan Blok ${blok} (${globalTagihan[idx].kondisi}) sebanyak ${bulan} Bulan dengan total Rp ${totalNominal.toLocaleString('id-ID')}?`)) {
         let res = await api("konfirmasiPembayaran", { 
             blok: blok, 
             nominal: totalNominal, 
@@ -200,8 +202,18 @@ window.simpanMemoDatabase = async function(idRow, oldCatatan) {
 };
 
 window.triggerGenerateTagihanMassal = async function() {
-    if(confirm("Generate tagihan bulan baru untuk seluruh warga?")) {
+    let konfirmasi = confirm("⚠️ PERINGATAN PENTING!\n\nAnda akan memulai PERIODE BULAN BARU.\n\nSemua warga yang sudah 'LUNAS' akan dikembalikan statusnya menjadi 'BELUM BAYAR'.\n\nApakah Anda yakin ingin melanjutkan?");
+    
+    if(konfirmasi) {
+        document.getElementById("konten-sub-tab").innerHTML = `<div style="text-align:center; padding:30px; font-weight:bold; color:#0f766e;">🔄 Memproses periode baru... Mohon tunggu.</div>`;
+        
         let res = await api("generateTagihan");
-        if(res.status === "success") { alert("Tagihan massal berhasil digenerate!"); penagihanPage(); }
+        if(res.status === "success") {
+            alert("✅ " + res.message);
+            penagihanPage(); 
+        } else {
+            alert("❌ Gagal: " + res.message);
+            penagihanPage();
+        }
     }
 };
