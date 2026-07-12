@@ -8,19 +8,37 @@
 </head>
 <body>
 
-  <div id="app"></div>
+    <div id="app">
+        <header class="card" style="display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 16px 16px; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #0f766e;">RT Digital v1</h2>
+            <button id="theme-toggle" style="background: transparent; font-size: 1.2rem; padding: 0;">🌙</button>
+        </header>
 
-  <script src="js/api.js"></script>
-  <script src="js/ui.js"></script>
+        <main id="main-content" style="padding-bottom: 80px;">
+            </main>
 
-  <script src="pages/dashboard.js"></script>
-  <script src="pages/rumah.js"></script>
-  <script src="pages/keuangan.js"></script>
-  <script src="pages/penagihan.js"></script>
-  <script src="pages/profil.js"></script>
+        <nav class="bottom-nav">
+            <a href="#" onclick="navigate('dashboard')" style="text-decoration: none; color: #0f766e; font-weight: bold;">Home</a>
+            <a href="#" onclick="navigate('rumah')" style="text-decoration: none; color: #0f766e; font-weight: bold;">Rumah</a>
+            <a href="#" onclick="navigate('keuangan')" style="text-decoration: none; color: #0f766e; font-weight: bold;">Keuangan</a>
+            <a href="#" onclick="navigate('penagihan')" style="text-decoration: none; color: #0f766e; font-weight: bold;">Penagihan</a>
+        </nav>
+    </div>
 
-  <script src="js/router.js"></script>
-  <script src="js/main.js"></script>
+    <div id="modal-container"></div>
+    <div id="toast" class="toast" style="display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; z-index: 9999;"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    
+    <script src="pages/dashboard.js"></script>
+    <script src="pages/rumah.js"></script>
+    <script src="pages/keuangan.js"></script>
+    <script src="pages/penagihan.js"></script>
+    <script src="pages/profil.js"></script>
+    
+    <script src="js/router.js"></script>
+    <script src="js/main.js"></script>
 
 </body>
 </html>
