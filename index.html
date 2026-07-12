@@ -9,7 +9,16 @@
 <body>
 
     <div id="app">
-        <header class="card" style="display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 16px 16px; margin-bottom: 20px;">
+        <header class="card" style="display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 16px 16px; margin-bottom: 20px; gap: 10px;">
+            <h2 style="margin: 0; color: #0f766e; font-size: 1.2rem;">RT Digital</h2>
+            
+            <select id="role-selector" onchange="changeRole(this.value)" style="width: auto; padding: 5px 10px; font-size: 0.85rem; border-radius: 8px; border: 1px solid #cbd5e1; background: white; font-weight: bold; color: #0f766e; outline: none;">
+                <option value="admin">👑 Admin RT</option>
+                <option value="bendahara">💰 Bendahara</option>
+                <option value="penagih">📋 Penagih</option>
+                <option value="warga">👤 Warga</option>
+            </select>
+        </header>
             <h2 style="margin: 0; color: #0f766e;">RT Digital v1</h2>
             <button id="theme-toggle" style="background: transparent; font-size: 1.2rem; padding: 0;">🌙</button>
         </header>
