@@ -3,16 +3,15 @@
 ==================================================*/
 
 function LaporanPage() {
-    // 🔒 GERBANG KEAMANAN: Admin dan Bendahara boleh masuk, sisanya ditolak!
-    if (currentRole !== 'admin' && currentRole !== 'bendahara') {
-        return `
-            <div style="padding: 20px; text-align: center; color: #ef4444; margin-top: 60px; animation: fadeIn 0.3s ease;">
-                <span style="font-size: 3.5rem;">🚫</span>
-                <h3 style="margin-top: 15px; color: #1e293b;">Akses Ditolak</h3>
-                <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5; padding: 0 10px;">
-                    Mohon maaf, halaman Pusat Laporan hanya bisa diakses oleh Admin RT dan Bendahara.
-                </p>
-            </div>
+    // 🔒 GERBANG KEAMANAN DICABUT: Warga sekarang boleh masuk untuk lihat-lihat!
+
+    // Tombol Cetak hanya muncul untuk Admin & Bendahara
+    let btnCetak = ``;
+    if (currentRole === 'admin' || currentRole === 'bendahara') {
+        btnCetak = `
+            <button onclick="alert('🖨️ MENCETAK PDF LAPORAN KEUANGAN...\\n\\n(Fitur generate PDF sungguhan akan siap saat kita menghubungkan ke Database)')" style="width: 100%; padding: 15px; background: #0f766e; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.2);">
+                🖨️ Cetak Laporan (PDF)
+            </button>
         `;
     }
 
@@ -50,9 +49,7 @@ function LaporanPage() {
                 </div>
             </div>
 
-            <button onclick="alert('🖨️ MENCETAK PDF LAPORAN KEUANGAN...\\n\\n(Fitur generate PDF sungguhan akan siap saat kita menghubungkan ke Database)')" style="width: 100%; padding: 15px; background: #0f766e; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.2);">
-                🖨️ Cetak Laporan (PDF)
-            </button>
+            ${btnCetak}
         </div>
     `;
 }
