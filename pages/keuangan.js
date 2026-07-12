@@ -1,5 +1,5 @@
 /*==================================================
-   RT DIGITAL - MODUL KEUANGAN (INTERAKTIF)
+   RT DIGITAL - MODUL KEUANGAN (SESUAI SOP BENDAHARA)
 ==================================================*/
 
 let dataKeuangan = [
@@ -7,8 +7,10 @@ let dataKeuangan = [
     { ket: "Bayar Sampah", jumlah: 150000, tipe: "keluar" }
 ];
 
+let editIndexKas = -1; // -1 = Tambah Baru, angka lain = Edit
+
 function KeuanganPage() {
-    // 🔒 GERBANG KEAMANAN: Jika peran adalah PENAGIH, blokir akses total halaman ini
+    // 🔒 GERBANG KEAMANAN: Penagih diblokir dari halaman ini
     if (currentRole === 'penagih') {
         return `
             <div style="padding: 20px; text-align: center; color: #ef4444; margin-top: 60px; animation: fadeIn 0.3s ease;">
@@ -38,7 +40,7 @@ function KeuanganPage() {
 
             <div id="modal-kas" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px);">
                 <div style="background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 350px;">
-                    <h3 style="margin-top: 0;">Tambah Transaksi</h3>
+                    <h3 id="modal-title-kas" style="margin-top: 0; margin-bottom: 15px;">Tambah Transaksi</h3>
                     <input type="text" id="input-ket" placeholder="Keterangan (mis: Iuran A-02)" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none;">
                     <input type="number" id="input-jumlah" placeholder="Jumlah (Rp)" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none;">
                     <select id="input-tipe" style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none;">
@@ -62,27 +64,40 @@ function loadKeuanganData() {
 
     if (!listContainer) return;
 
-    // CEK PERAN: Tombol + Kas HANYA untuk Admin dan Bendahara
+    // 🔒 1. TOMBOL TAMBAH: Admin dan Bendahara bisa akses
     if (currentRole === 'admin' || currentRole === 'bendahara') {
-        wadahBtnKas.innerHTML = `<button id="btn-tambah-kas" style="background: #0f766e; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">+ Kas</button>`;
+        wadahBtnKas.innerHTML = `<button id="btn-tambah-kas" style="background: #0f766e; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-weight: bold;">+ Kas</button>`;
         
-        document.getElementById("btn-tambah-kas").onclick = () => modal.style.display = "flex";
-        document.getElementById("btn-batal-kas").onclick = () => modal.style.display = "none";
-        
-        document.getElementById("btn-simpan-kas").onclick = () => {
-            const ket = document.getElementById("input-ket").value;
-            const jumlah = parseInt(document.getElementById("input-jumlah").value);
-            const tipe = document.getElementById("input-tipe").value;
-
-            if (ket && jumlah) {
-                dataKeuangan.unshift({ ket, jumlah, tipe });
-                render();
-                modal.style.display = "none";
-            } else {
-                alert("Isi keterangan dan jumlah!");
-            }
+        document.getElementById("btn-tambah-kas").onclick = () => {
+            editIndexKas = -1; // Mode Tambah
+            document.getElementById("modal-title-kas").innerText = "Tambah Transaksi";
+            document.getElementById("input-ket").value = "";
+            document.getElementById("input-jumlah").value = "";
+            document.getElementById("input-tipe").value = "masuk";
+            modal.style.display = "flex";
         };
+    } else {
+        wadahBtnKas.innerHTML = ``;
     }
+
+    document.getElementById("btn-batal-kas").onclick = () => modal.style.display = "none";
+    
+    document.getElementById("btn-simpan-kas").onclick = () => {
+        const ket = document.getElementById("input-ket").value;
+        const jumlah = parseInt(document.getElementById("input-jumlah").value);
+        const tipe = document.getElementById("input-tipe").value;
+
+        if (!ket || !jumlah) return alert("Keterangan dan jumlah wajib diisi!");
+
+        if (editIndexKas === -1) {
+            dataKeuangan.unshift({ ket, jumlah, tipe }); // Tambah data baru ke atas
+        } else {
+            dataKeuangan[editIndexKas] = { ket, jumlah, tipe }; // Update data lama
+        }
+
+        render();
+        modal.style.display = "none";
+    };
 
     function render() {
         listContainer.innerHTML = "";
@@ -93,10 +108,22 @@ function loadKeuanganData() {
         dataKeuangan.forEach((item, index) => {
             total += (item.tipe === "masuk" ? item.jumlah : -item.jumlah);
             
-            // CEK PERAN: Tombol hapus transaksi untuk Admin & Bendahara
-            const btnHapus = (currentRole === 'admin' || currentRole === 'bendahara')
-                ? `<button style="background: transparent; border: none; color: #ef4444; cursor: pointer; margin-left: 10px; font-size: 1.1rem;" onclick="hapusKas(${index})">🗑️</button>`
-                : ``;
+            // 🔒 2. CEK PERAN UNTUK TOMBOL EDIT & HAPUS
+            let actionButtons = ``;
+            if (currentRole === 'admin' || currentRole === 'bendahara') {
+                
+                // Bendahara BISA edit, TAPI TIDAK BISA hapus
+                let btnHapus = (currentRole === 'admin')
+                    ? `<button onclick="hapusKas(${index})" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 1.1rem;" title="Hapus">🗑️</button>`
+                    : ``;
+
+                actionButtons = `
+                    <div style="display: flex; gap: 8px; margin-left: 10px;">
+                        <button onclick="editKas(${index})" style="background: transparent; border: none; cursor: pointer; font-size: 1.1rem;" title="Edit">✏️</button>
+                        ${btnHapus}
+                    </div>
+                `;
+            }
 
             listContainer.innerHTML += `
                 <div class="card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; padding: 15px;">
@@ -107,7 +134,7 @@ function loadKeuanganData() {
                         <p style="margin: 0; color: ${item.tipe === "masuk" ? "#16a34a" : "#dc2626"}; font-weight: bold;">
                             ${item.tipe === "masuk" ? "+" : "-"} Rp ${item.jumlah.toLocaleString('id-ID')}
                         </p>
-                        ${btnHapus}
+                        ${actionButtons}
                     </div>
                 </div>
             `;
@@ -117,8 +144,21 @@ function loadKeuanganData() {
         document.getElementById("total-saldo").innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(total);
     }
 
+    // Fungsi Trigger Edit
+    window.editKas = function(index) {
+        editIndexKas = index;
+        document.getElementById("modal-title-kas").innerText = "Edit Transaksi";
+        document.getElementById("input-ket").value = dataKeuangan[index].ket;
+        document.getElementById("input-jumlah").value = dataKeuangan[index].jumlah;
+        document.getElementById("input-tipe").value = dataKeuangan[index].tipe;
+        modal.style.display = "flex";
+    }
+
+    // Gembok keamanan ganda untuk Hapus Kas
     window.hapusKas = function(index) {
-        if(confirm("Yakin ingin menghapus transaksi ini?")) {
+        if (currentRole !== 'admin') return alert("Hanya Admin yang berhak menghapus data transaksi!");
+        
+        if(confirm("Yakin ingin menghapus transaksi ini? (Akan mempengaruhi total saldo)")) {
             dataKeuangan.splice(index, 1);
             render();
         }
