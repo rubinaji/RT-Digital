@@ -1,0 +1,90 @@
+/*==================================================
+  RT DIGITAL - GLOBAL STYLE
+==================================================*/
+:root {
+  --primary: #0f766e;
+  --secondary: #14b8a6;
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --success: #16a34a;
+  --danger: #dc2626;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  /* Memberi ruang di bawah agar tidak tertutup menu */
+  padding-bottom: 80px; 
+}
+
+/* Animasi Transisi Halus */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animasi Loading Spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/*==================================================
+  MENU NAVIGASI BAWAH (BOTTOM MENU)
+==================================================*/
+#app > div:last-child {
+  /* Memaksa elemen menu dari ui.js menjadi rapi di bawah */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+  border-top: 1px solid var(--border);
+  z-index: 1000;
+}
+
+#app button {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Gaya tombol biasa (untuk di luar menu bawah) */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
