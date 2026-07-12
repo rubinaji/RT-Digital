@@ -19,19 +19,10 @@
                 <option value="warga">👤 Warga</option>
             </select>
         </header>
-            <h2 style="margin: 0; color: #0f766e;">RT Digital v1</h2>
-            <button id="theme-toggle" style="background: transparent; font-size: 1.2rem; padding: 0;">🌙</button>
-        </header>
 
-        <main id="main-content" style="padding-bottom: 80px;">
-            </main>
+        <main id="main-content" style="padding-bottom: 80px;"></main>
 
-        <nav class="bottom-nav">
-            <a href="#" onclick="navigate('dashboard')" style="text-decoration: none; color: #0f766e; font-weight: bold;">Home</a>
-            <a href="#" onclick="navigate('rumah')" style="text-decoration: none; color: #0f766e; font-weight: bold;">Rumah</a>
-            <a href="#" onclick="navigate('keuangan')" style="text-decoration: none; color: #0f766e; font-weight: bold;">Keuangan</a>
-            <a href="#" onclick="navigate('penagihan')" style="text-decoration: none; color: #0f766e; font-weight: bold;">Penagihan</a>
-        </nav>
+        <nav class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000;"></nav>
     </div>
 
     <div id="modal-container"></div>
@@ -45,32 +36,10 @@
     <script src="pages/keuangan.js"></script>
     <script src="pages/penagihan.js"></script>
     <script src="pages/profil.js"></script>
-    <script src="pages/lainnya.js"></script> ```
+    <script src="pages/lainnya.js"></script>
+    
+    <script src="js/router.js"></script>
+    <script src="js/main.js"></script>
 
-### Langkah 3: Update `js/router.js`
-Buka file `js/router.js`, cari bagian `switch (pageName) { ... }`, lalu tambahkan kondisi untuk menu "lainnya". Jadinya seperti ini:
-
-```javascript
-    // Deteksi modul halaman mana yang harus dipanggil
-    switch (pageName) {
-        case "dashboard":
-            contentBody.innerHTML = typeof DashboardPage === "function" ? DashboardPage() : "<p>Modul disiapkan...</p>";
-            break;
-        case "rumah":
-            contentBody.innerHTML = typeof RumahPage === "function" ? RumahPage() : "<p>Modul disiapkan...</p>";
-            break;
-        case "keuangan":
-            contentBody.innerHTML = typeof KeuanganPage === "function" ? KeuanganPage() : "<p>Modul disiapkan...</p>";
-            break;
-        case "penagihan":
-            contentBody.innerHTML = typeof PenagihanPage === "function" ? PenagihanPage() : "<p>Modul disiapkan...</p>";
-            break;
-        case "profil":
-            contentBody.innerHTML = typeof ProfilPage === "function" ? ProfilPage() : "<p>Modul disiapkan...</p>";
-            break;
-        case "lainnya": // TAMBAHKAN BLOK INI
-            contentBody.innerHTML = typeof LainnyaPage === "function" ? LainnyaPage() : "<p>Modul disiapkan...</p>";
-            break;
-        default:
-            contentBody.innerHTML = "<p style='padding: 20px;'>Halaman tidak ditemukan.</p>";
-    }
+</body>
+</html>
