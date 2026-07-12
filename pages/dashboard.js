@@ -6,20 +6,8 @@
  * Fungsi utama yang dipanggil oleh router saat menu Home diklik
  */
 function DashboardPage() {
-  // PERBAIKAN: Beri jeda 50ms agar wadah HTML selesai dibuat dulu di layar
+  // Beri jeda 50ms agar wadah HTML selesai dibuat dulu di layar
   setTimeout(loadDashboardData, 50);
-
-  return `
-    <div id="dashboard-container" style="animation: fadeIn 0.3s ease; padding: 20px;">
-      <div style="text-align: center; margin-top: 50px; color: #64748b;">
-        <div class="spinner" style="margin: 0 auto 10px auto;"></div>
-        <p>Memuat data RT...</p>
-      </div>
-    </div>
-  `;
-}
-  // Panggil fungsi render data
-  loadDashboardData();
 
   return `
     <div id="dashboard-container" style="animation: fadeIn 0.3s ease; padding: 20px;">
@@ -38,9 +26,7 @@ async function loadDashboardData() {
   const container = document.getElementById("dashboard-container");
   if (!container) return;
 
-  // CATATAN: Sementara kita pakai data DUMMY (palsu) dulu agar desainnya 
-  // bisa langsung kamu lihat di HP/Browser tanpa perlu nyambung ke Google Sheets dulu.
-  
+  // Sementara kita pakai data DUMMY (palsu) dulu untuk keperluan desain
   setTimeout(() => {
     container.innerHTML = `
       <div style="background: linear-gradient(135deg, #0f766e, #14b8a6); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px;">
