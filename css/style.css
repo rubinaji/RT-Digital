@@ -1,28 +1,35 @@
-/* 1. Global Reset & Modern Font */
-* { box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
-body { background-color: #f1f5f9; margin: 0; padding: 0; color: #1e293b; }
-
-/* 2. Container Aplikasi (Mobile-Friendly) */
-#app { max-width: 500px; margin: 0 auto; min-height: 100vh; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
-
-/* 3. Button Styling (Biar gak kaku) */
-button { 
-    padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; 
-    transition: transform 0.1s, background 0.2s; font-weight: 600; 
-}
-button:active { transform: scale(0.98); }
-.btn-primary { background: #0f766e; color: white; }
-
-/* 4. Card Design (Biar ada kedalaman) */
-.card { 
-    background: white; padding: 20px; border-radius: 16px; 
-    border: 1px solid #e2e8f0; margin-bottom: 15px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+:root {
+    --primary: #0f766e;
+    --secondary: #14b8a6;
+    --bg: #f8fafc;
+    --text: #1e293b;
 }
 
-/* 5. Input Style */
-input, select { 
-    width: 100%; padding: 12px; border: 1px solid #cbd5e1; 
-    border-radius: 10px; outline: none; transition: border-color 0.2s; 
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
 }
-input:focus { border-color: #0f766e; }
+
+.card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+    transition: transform 0.2s ease;
+}
+
+.card:active {
+    transform: scale(0.98);
+}
+
+.header {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 30px 20px;
+    border-radius: 0 0 25px 25px;
+}
+
+/* Navigasi Bawah Styling */
+.bottom-nav {
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.02);
+}
