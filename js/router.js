@@ -31,11 +31,11 @@ function navigate(pageName) {
     contentBody.innerHTML = typeof KeuanganPage === "function" ? KeuanganPage() : "<p>Modul Keuangan sedang disiapkan...</p>";
     break;
     case "penagihan":
-      contentBody.innerHTML = "<p>Modul Penagihan 'Galak' sedang disiapkan...</p>";
-      break;
+    contentBody.innerHTML = typeof PenagihanPage === "function" ? PenagihanPage() : "<p>Modul Penagihan sedang disiapkan...</p>";
+    break;
     case "profil":
-      contentBody.innerHTML = "<p>Modul Profil sedang disiapkan...</p>";
-      break;
+    contentBody.innerHTML = typeof ProfilPage === "function" ? ProfilPage() : "<p>Modul Profil sedang disiapkan...</p>";
+    break;
     default:
       contentBody.innerHTML = "<p>Halaman tidak ditemukan.</p>";
   }
