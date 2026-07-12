@@ -1,6 +1,6 @@
 /*==================================================
    RT DIGITAL - MODUL DATA RUMAH (REAL-TIME GOOGLE SHEETS)
-   (SESUAI MATRIKS HAK AKSES RESMI)
+   (SESUAI MATRIKS HAK AKSES RESMI - ANTI HURUF BESAR KECIL)
 ==================================================*/
 
 let globalDataRumah = [];
@@ -10,20 +10,20 @@ async function rumahPage() {
     const mainContent = document.getElementById("main-content");
     if (!mainContent) return;
 
-    // 1. Tampilkan status loading transparan
+    // Bersihkan spasi dan buat huruf kecil semua agar tidak salah deteksi role
+    let roleBersih = (currentRole || "").toLowerCase().trim();
+
     mainContent.innerHTML = `
         <div style="padding: 50px 20px; text-align: center; color: #0f766e; font-weight: bold; font-size: 0.95rem;">
             🔄 Memuat data warga dari server...
         </div>
     `;
 
-    // 2. Ambil data asli dari Google Sheet via API
     let respon = await api("getRumah");
 
     if (respon.status === "success") {
-        globalDataRumah = respon.data; // Simpan ke variabel lokal untuk dirender
+        globalDataRumah = respon.data;
         
-        // 3. Render kerangka halaman dan kerangka Modal
         mainContent.innerHTML = `
             <div id="rumah-container" style="padding: 20px; animation: fadeIn 0.3s ease;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -31,8 +31,8 @@ async function rumahPage() {
                     <div id="wadah-btn-rumah"></div>
                 </div>
                 
-                ${currentRole === 'warga' ? `<div style="background:#f0fdf4; color:#16a34a; padding:10px 15px; border-radius:10px; font-size:0.75rem; font-weight:bold; margin-bottom:15px; border:1px solid #bbf7d0;">👁️ Mode Warga: Menampilkan data rumah Anda sendiri secara privat.</div>` : ''}
-                ${currentRole === 'penagih' ? `<div style="background:#f8fafc; color:#475569; padding:10px 15px; border-radius:10px; font-size:0.75rem; font-weight:bold; margin-bottom:15px; border:1px solid #cbd5e1;">👁️ Mode Lihat: Hak akses Penagih (Read-Only).</div>` : ''}
+                ${roleBersih === 'warga' ? `<div style="background:#f0fdf4; color:#16a34a; padding:10px 15px; border-radius:10px; font-size:0.75rem; font-weight:bold; margin-bottom:15px; border:1px solid #bbf7d0;">👁️ Mode Warga: Menampilkan data rumah Anda sendiri secara privat.</div>` : ''}
+                ${roleBersih === 'penagih' ? `<div style="background:#f8fafc; color:#475569; padding:10px 15px; border-radius:10px; font-size:0.75rem; font-weight:bold; margin-bottom:15px; border:1px solid #cbd5e1;">👁️ Mode Lihat: Hak akses Penagih (Read-Only).</div>` : ''}
 
                 <div id="list-rumah" style="display: grid; grid-template-columns: 1fr; gap: 15px;"></div>
 
@@ -87,9 +87,9 @@ function setupRumahLogic() {
     const listContainer = document.getElementById("list-rumah");
     const wadahBtn = document.getElementById("wadah-btn-rumah");
     const modal = document.getElementById("modal-rumah");
+    let roleBersih = (currentRole || "").toLowerCase().trim();
     
-    // 🔒 MATRIKS AKSES: Hanya Admin & Bendahara yang bisa memunculkan tombol Tambah (✅)
-    if (currentRole === 'admin' || currentRole === 'bendahara') {
+    if (roleBersih === 'admin' || roleBersih === 'bendahara') {
         wadahBtn.innerHTML = `<button id="btn-tambah-rumah" style="padding: 8px 15px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">+ Tambah Warga</button>`;
         
         document.getElementById("btn-tambah-rumah").onclick = () => {
@@ -127,7 +127,6 @@ function setupRumahLogic() {
         btnSimpan.disabled = true;
 
         if (editIndexRumah === -1) {
-            // PROSES TAMBAH DATA (ADMIN/BENDAHARA)
             let res = await api("tambahRumah", {
                 blok: blok, nama: penghuni, wa: noWA, rt: rt, rw: rw, status: status
             });
@@ -140,7 +139,6 @@ function setupRumahLogic() {
                 alert("Gagal menyimpan: " + res.message);
             }
         } else {
-            // PROSES EDIT DATA (ADMIN/BENDAHARA)
             let res = await api("editRumah", {
                 blok: blok, rtrw: `RT ${rt}/RW ${rw}`, nama: penghuni, wa: noWA, status: status
             });
@@ -161,9 +159,8 @@ function setupRumahLogic() {
     function renderKartuRumah() {
         listContainer.innerHTML = "";
         
-        // FILTER MATRIKS: Warga hanya bisa melihat miliknya sendiri (👁️ milik sendiri)
         let dataTersaring = globalDataRumah;
-        if (currentRole === 'warga') {
+        if (roleBersih === 'warga') {
             let filterBlok = myBlok ? myBlok.toString().toLowerCase().trim() : "";
             dataTersaring = globalDataRumah.filter(item => item.blok.toString().toLowerCase().trim() === filterBlok);
         }
@@ -178,12 +175,17 @@ function setupRumahLogic() {
             let badgeColor = propertiStatus.toLowerCase() === 'kosong' ? '#dc2626' : (propertiStatus.toLowerCase() === 'dikontrak' ? '#eab308' : '#16a34a');
             let badgeBg = propertiStatus.toLowerCase() === 'kosong' ? '#fef2f2' : (propertiStatus.toLowerCase() === 'dikontrak' ? '#fefce8' : '#dcfce7');
 
-            // 🔒 MATRIKS AKSES: Hanya Admin & Bendahara yang memunculkan tombol Edit. Hapus dilarang total (❌)
             let actionButtons = ``;
-            if (currentRole === 'admin' || currentRole === 'bendahara') {
+            if (roleBersih === 'admin' || roleBersih === 'bendahara') {
+                // 👑 KUNCI RESMI: Hanya peran ADMIN (case-insensitive) yang memunculkan tombol hapus sampah merah!
+                let btnHapusOtoritas = (roleBersih === 'admin') 
+                    ? `<button onclick="aksiHapusWargaServer('${item.blok}')" style="background: transparent; border: none; cursor: pointer; font-size: 1.2rem; color: #ef4444; margin-left: 12px; vertical-align: middle;" title="Hapus Permanen">🗑️</button>`
+                    : ``;
+
                 actionButtons = `
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 4px; align-items: center;">
                         <button onclick="bukaModalEditRumah('${item.blok}')" style="background: transparent; border: none; cursor: pointer; font-size: 1.2rem;" title="Edit Data Warga">✏️</button>
+                        ${btnHapusOtoritas}
                     </div>
                 `;
             }
@@ -212,7 +214,6 @@ function setupRumahLogic() {
         editIndexRumah = index;
         document.getElementById("modal-title-rumah").innerText = "Edit Data Rumah";
         
-        // Kunci kolom Blok saat edit agar tidak memicu error pencarian database
         document.getElementById("input-blok").value = globalDataRumah[index].blok;
         document.getElementById("input-blok").disabled = true;
         document.getElementById("input-blok").style.background = "#f1f5f9";
@@ -228,6 +229,18 @@ function setupRumahLogic() {
         
         document.getElementById("input-status-rumah").value = globalDataRumah[index].status || "Ditempati";
         modal.style.display = "flex";
+    };
+
+    window.aksiHapusWargaServer = async function(nomorBlok) {
+        if (confirm(`⚠️ PENTING: Apakah Anda yakin ingin MENGHAPUS secara permanen seluruh data warga Blok ${nomorBlok} dari database Google Sheets?`)) {
+            let res = await api("hapusRumah", { blok: nomorBlok });
+            if (res.status === "success") {
+                alert("✅ Sukses! Data warga berhasil dihapus bersih dari database.");
+                rumahPage();
+            } else {
+                alert("❌ Gagal menghapus data: " + res.message);
+            }
+        }
     };
 
     renderKartuRumah();
