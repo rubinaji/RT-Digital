@@ -174,8 +174,7 @@ function setupRumahLogic() {
             let propertiStatus = item.status || "Kosong";
             let statusClean = propertiStatus.toLowerCase().trim();
             
-            // Tentukan warna label kartu sesuai matriks tarif baru
-            let badgeColor = '#16a34a'; // Default lunas/ditempati
+            let badgeColor = '#16a34a'; 
             let badgeBg = '#dcfce7';
             let labelTampilan = propertiStatus;
 
@@ -252,4 +251,17 @@ function setupRumahLogic() {
         modal.style.display = "flex";
     };
 
-    window.aksiHapusWargaServer = async function(nomorBl
+    window.aksiHapusWargaServer = async function(nomorBlok) {
+        if (confirm(`⚠️ PENTING: Apakah Anda yakin ingin MENGHAPUS secara permanen seluruh data warga Blok ${nomorBlok} dari database Google Sheets?`)) {
+            let res = await api("hapusRumah", { blok: nomorBlok });
+            if (res.status === "success") {
+                alert("✅ Sukses! Data warga berhasil dihapus bersih dari database.");
+                rumahPage();
+            } else {
+                alert("❌ Gagal menghapus data: " + res.message);
+            }
+        }
+    };
+
+    renderKartuRumah();
+}
