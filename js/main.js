@@ -22,13 +22,19 @@ function renderBottomNav() {
         navItems.push({ id: 'lainnya', icon: '☰', text: 'Lainnya' }); 
     } 
 
-    // Render HTML super bersih tanpa inline CSS yang bertabrakan
+    // Render HTML super bersih tanpa efek loncat
     navContainer.innerHTML = navItems.map(item => ` 
-        <a href="#" onclick="navigate('${item.id}')"> 
-            <span style="font-size: 1.4rem;">${item.icon}</span> 
+        <a href="javascript:void(0)" onclick="navigate('${item.id}')" style="padding-bottom: 5px;"> 
+            <span style="font-size: 1.4rem; margin-bottom: 2px;">${item.icon}</span> 
             <span>${item.text}</span> 
         </a> 
     `).join(''); 
+
+    const activePage = document.getElementById("main-content").dataset.activePage || "dashboard"; 
+    if (typeof updateActiveNav === "function") {
+        // Paksa sinkronisasi setelah menu digambar ulang
+        setTimeout(() => updateActiveNav(activePage), 50); 
+    }
 
     const activePage = document.getElementById("main-content").dataset.activePage || "dashboard"; 
     if (typeof updateActiveNav === "function") {
