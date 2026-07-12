@@ -4,7 +4,7 @@
 
 /**
  * Berfungsi untuk berpindah halaman/menu tanpa reload
- * @param {string} pageName - Nama halaman yang dituju (dashboard, rumah, keuangan, dll)
+ * @param {string} pageName - Nama halaman yang dituju
  */
 function navigate(pageName) {
     // Ambil kontainer tempat konten modul halaman akan dirender
