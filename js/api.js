@@ -3,7 +3,7 @@
 ==================================================*/ 
 
 // URL Web App Google Apps Script RT Digital (TERBARU)
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxr_FA0rHu-vj5hMWTbC8U7DH36vZ3F7Wuvz2zqx0CEP8fOFn_c6yGYcFqhkhZMcXeoRg/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyyiAWdMz_63cznjd_yFX4kZiPdc9c9m0l5jVdwYnvknJAzxbeaPQAc_-89ghPpX5LVw/exec"; 
 
 /**
  * Fungsi utama untuk memanggil backend (Google Apps Script)
