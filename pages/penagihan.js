@@ -1,6 +1,6 @@
 /*==================================================
    RT DIGITAL - MODUL PENAGIHAN KONEKSI DATABASES REAL
-   (UPGRADE: INFOGRAFIS TUNGGAKAN & PAY MULTI-MONTHS)
+   (DIFERENSIASI TARIF: 40K DITEMPATI VS 25K KOSONG)
 ==================================================*/
 let globalTagihan = [];
 let tabAktifPenagihan = "penagihan-wa";
@@ -54,24 +54,38 @@ function renderSubTabPenagihan() {
     if(tabAktifPenagihan === "pembayaran" && tBayar) { tBayar.style.background="white"; tBayar.style.color="#0f766e"; }
     if(tabAktifPenagihan === "atur-tagihan" && tAtur) { tAtur.style.background="white"; tAtur.style.color="#0f766e"; }
 
-    // TAB 1: DAFTAR TUNGGAKAN & BROADCAST WA
+    // TAB 1: LIST TUNGGAKAN BROADCAST WA
     if (tabAktifPenagihan === "penagihan-wa") {
-        wadah.innerHTML = globalTagihan.map(warga => `
-            <div class="card" style="padding:15px; background:white; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <h4 style="margin:0;">Blok ${warga.blok} - ${warga.nama}</h4>
-                    <span style="background:#fef2f2; color:#dc2626; font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:bold;">Tunggakan: ${warga.status.toUpperCase()}</span>
-                    <p style="margin:4px 0 0 0; font-size:0.75rem; color:#64748b;">Memo: ${warga.catatan || 'Tidak ada catatan'}</p>
+        if (globalTagihan.length === 0) {
+            wadah.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">🎉 Semua rumah sudah lunas bulan ini!</div>`;
+            return;
+        }
+        wadah.innerHTML = globalTagihan.map(warga => {
+            let statusClean = (warga.status || "").toLowerCase().trim();
+            let isDitempati = (statusClean === "ditempati" || statusClean === "dikontrak");
+            let tarifBase = isDitempati ? 40000 : 25000;
+            let tipeLabel = isDitempati ? "🏡 Berpenghuni" : "🚪 Kosong/Tidak Ditempati";
+
+            return `
+                <div class="card" style="padding:15px; background:white; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h4 style="margin:0;">Blok ${warga.blok} - ${warga.nama}</h4>
+                        <div style="margin:4px 0; display:flex; gap:6px; flex-wrap:wrap;">
+                            <span style="background:#fef2f2; color:#dc2626; font-size:0.68rem; padding:2px 6px; border-radius:4px; font-weight:bold;">Tarif: Rp ${tarifBase.toLocaleString('id-ID')}</span>
+                            <span style="background:#f1f5f9; color:#475569; font-size:0.68rem; padding:2px 6px; border-radius:4px; font-weight:500;">${tipeLabel}</span>
+                        </div>
+                        <p style="margin:4px 0 0 0; font-size:0.75rem; color:#64748b;">Memo: ${warga.catatan || 'Tidak ada catatan'}</p>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="simpanMemoDatabase(${warga.id_row}, '${warga.catatan}')" style="padding:6px; background:#e2e8f0; border:none; border-radius:6px; cursor:pointer;">📝 Memo</button>
+                        <a href="https://wa.me/${warga.wa}?text=Halo%20${encodeURIComponent(warga.nama)},%20mohon%20konfirmasi%20iuran%20bulanan%20Blok%20${warga.blok}%20sebesar%20Rp%20${tarifBase.toLocaleString('id-ID')}." target="_blank" style="padding:6px 10px; background:#22c55e; color:white; border-radius:6px; text-decoration:none; font-size:0.8rem; font-weight:bold;">📢 Tagih</a>
+                    </div>
                 </div>
-                <div style="display:flex; gap:5px;">
-                    <button onclick="simpanMemoDatabase(${warga.id_row}, '${warga.catatan}')" style="padding:6px; background:#e2e8f0; border:none; border-radius:6px; cursor:pointer;">📝 Memo</button>
-                    <a href="https://wa.me/${warga.wa}?text=Halo%20${encodeURIComponent(warga.nama)},%20mohon%20konfirmasi%20iuran%20bulanan%20Blok%20${warga.blok}." target="_blank" style="padding:6px 10px; background:#22c55e; color:white; border-radius:6px; text-decoration:none; font-size:0.8rem; font-weight:bold;">📢 Tagih</a>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
-    // TAB 2: PROSES INPUT KAS PEMBAYARAN (MULTI-MONTHS INTEGRATION)
+    // TAB 2: PROSES BAYAR IURAN DINAMIS & PILIHAN 12 BULAN
     if (tabAktifPenagihan === "pembayaran") {
         if (globalTagihan.length === 0) {
             wadah.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">🎉 Semua warga sudah lunas!</div>`;
@@ -80,44 +94,51 @@ function renderSubTabPenagihan() {
 
         wadah.innerHTML = `
             <div style="margin-bottom:12px;">
-                <h4 style="margin:0 0 4px 0; color:#1e293b;">💰 Input Setoran & Konfirmasi Iuran</h4>
-                <p style="margin:0; color:#64748b; font-size:0.75rem;">Pilih durasi bulan iuran yang dibayar (bisa langsung bayar 12 bulan / 1 tahun).</p>
+                <h4 style="margin:0 0 4px 0; color:#1e293b;">💰 Input Setoran & Konfirmasi Pembayaran</h4>
+                <p style="margin:0; color:#64748b; font-size:0.75rem;">Sistem otomatis memisahkan tarif berpenghuni (40k) dan rumah kosong (25k).</p>
             </div>
-            ${globalTagihan.map((warga, idx) => `
-                <div class="card" style="padding:15px; background:white; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:10px; display:flex; flex-direction:column; gap:10px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <h4 style="margin:0; color:#1e293b; font-size:0.9rem;">Blok ${warga.blok} - ${warga.nama}</h4>
-                            <small style="color:#64748b; font-size:0.75rem;">Status Tunggakan: <b style="color:#dc2626;">${warga.status}</b></small>
-                        </div>
-                    </div>
-                    
-                    <div style="display:flex; align-items:center; gap:12px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
-                        <div style="flex:1;">
-                            <label style="font-size:0.68rem; color:#64748b; display:block; margin-bottom:3px; font-weight:bold;">DURASI BAYAR:</label>
-                            <select id="pilih-bulan-${idx}" onchange="updateEstimasiTotal(${idx})" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; background:white;">
-                                <option value="1">1 Bulan (Normal)</option>
-                                <option value="2">2 Bulan</option>
-                                <option value="3">3 Bulan</option>
-                                <option value="6">6 Bulan (Setengah Tahun)</option>
-                                <option value="12">12 Bulan (1 Tahun Penuh)</option>
-                            </select>
-                        </div>
-                        <div style="text-align:right;">
-                            <span style="font-size:0.68rem; color:#64748b; display:block; font-weight:bold;">TOTAL TAGIHAN:</span>
-                            <b id="total-bayar-${idx}" style="color:#0f766e; font-size:0.95rem;">Rp 50.000</b>
-                        </div>
-                    </div>
+            ${globalTagihan.map((warga, idx) => {
+                let statusClean = (warga.status || "").toLowerCase().trim();
+                let isDitempati = (statusClean === "ditempati" || statusClean === "dikontrak");
+                let tarifBase = isDitempati ? 40000 : 25000;
+                let tipeLabel = isDitempati ? "Berpenghuni (40k/bln)" : "Kosong (25k/bln)";
 
-                    <button onclick="prosesSetorIuranServerBanyakBulan('${warga.blok}', ${idx})" style="width:100%; padding:10px; background:#0f766e; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.8rem;">
-                        💰 Konfirmasi & Simpan Setoran
-                    </button>
-                </div>
-            `).join('')}
+                return `
+                    <div class="card" style="padding:15px; background:white; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:10px; display:flex; flex-direction:column; gap:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <h4 style="margin:0; color:#1e293b; font-size:0.9rem;">Blok ${warga.blok} - ${warga.nama}</h4>
+                                <small style="color:#64748b; font-size:0.75rem;">Kondisi: <b style="color:#0f766e;">${tipeLabel}</b></small>
+                            </div>
+                        </div>
+                        
+                        <div style="display:flex; align-items:center; gap:12px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+                            <div style="flex:1;">
+                                <label style="font-size:0.68rem; color:#64748b; display:block; margin-bottom:3px; font-weight:bold;">DURASI BULAN:</label>
+                                <select id="pilih-bulan-${idx}" onchange="updateEstimasiTotal(${idx})" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; background:white; color:#1e293b; font-weight:600;">
+                                    <option value="1">1 Bulan</option>
+                                    <option value="2">2 Bulan</option>
+                                    <option value="3">3 Bulan</option>
+                                    <option value="6">6 Bulan (1/2 Tahun)</option>
+                                    <option value="12">12 Bulan (1 Tahun Lunas)</option>
+                                </select>
+                            </div>
+                            <div style="text-align:right;">
+                                <span style="font-size:0.68rem; color:#64748b; display:block; font-weight:bold;">TOTAL SETORAN:</span>
+                                <b id="total-bayar-${idx}" style="color:#16a34a; font-size:1rem; font-weight:800;">Rp ${tarifBase.toLocaleString('id-ID')}</b>
+                            </div>
+                        </div>
+
+                        <button onclick="prosesSetorIuranServerBanyakBulan('${warga.blok}', ${idx})" style="width:100%; padding:10px; background:#0f766e; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.8rem;">
+                            💰 Konfirmasi & Simpan Setoran Murni
+                        </button>
+                    </div>
+                `;
+            }).join('')}
         `;
     }
 
-    // TAB 3: ADMINISTRASI
+    // TAB 3: ADMINISTRASI RESET PERIODE
     if (tabAktifPenagihan === "atur-tagihan") {
         if(roleBersih !== 'admin' && roleBersih !== 'bendahara') {
             wadah.innerHTML = "🔒 Menu Khusus Admin / Bendahara.";
@@ -125,7 +146,7 @@ function renderSubTabPenagihan() {
         }
         wadah.innerHTML = `
             <div style="padding:20px; text-align:center; background:#f8fafc; border:2px dashed #cbd5e1; border-radius:12px;">
-                <h3>🔄 Perbarui Periode Iuran</h3>
+                <h3>🔄 Perbarui Periode Baru</h3>
                 <p>Klik tombol di bawah untuk me-reset status seluruh warga yang 'Lunas' kembali menjadi 'Belum Bayar' di awal bulan.</p>
                 <button onclick="triggerGenerateTagihanMassal()" style="padding:10px 20px; background:#0f766e; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">🔄 Generate Tagihan Masal</button>
             </div>
@@ -137,8 +158,12 @@ window.updateEstimasiTotal = function(idx) {
     let selectEl = document.getElementById(`pilih-bulan-${idx}`);
     let totalEl = document.getElementById(`total-bayar-${idx}`);
     if(!selectEl || !totalEl) return;
+    
+    let statusClean = (globalTagihan[idx].status || "").toLowerCase().trim();
+    let tarifBase = (statusClean === "ditempati" || statusClean === "dikontrak") ? 40000 : 25000;
+    
     let bulan = parseInt(selectEl.value);
-    let total = 50000 * bulan;
+    let total = tarifBase * bulan;
     totalEl.innerText = "Rp " + total.toLocaleString('id-ID');
 };
 
@@ -146,9 +171,12 @@ window.prosesSetorIuranServerBanyakBulan = async function(blok, idx) {
     let selectEl = document.getElementById(`pilih-bulan-${idx}`);
     if(!selectEl) return;
     let bulan = parseInt(selectEl.value);
-    let totalNominal = 50000 * bulan;
+    
+    let statusClean = (globalTagihan[idx].status || "").toLowerCase().trim();
+    let tarifBase = (statusClean === "ditempati" || statusClean === "dikontrak") ? 40000 : 25000;
+    let totalNominal = tarifBase * bulan;
 
-    if(confirm(`Konfirmasi pelunasan Blok ${blok} sebanyak ${bulan} Bulan dengan total Rp ${totalNominal.toLocaleString('id-ID')}?`)) {
+    if(confirm(`Konfirmasi pelunasan Blok ${blok} (${globalTagihan[idx].status}) sebanyak ${bulan} Bulan dengan total Rp ${totalNominal.toLocaleString('id-ID')}?`)) {
         let res = await api("konfirmasiPembayaran", { 
             blok: blok, 
             nominal: totalNominal, 
@@ -156,7 +184,7 @@ window.prosesSetorIuranServerBanyakBulan = async function(blok, idx) {
             petugas: myName || "Bendahara" 
         });
         if(res.status === "success") { 
-            alert(`✅ Sukses! Pembayaran ${bulan} Bulan berhasil dicatat permanen ke Kas.`); 
+            alert(`✅ Sukses! Pembayaran sebanyak ${bulan} Bulan berhasil masuk pembukuan.`); 
             penagihanPage(); 
         } else {
             alert("❌ Gagal: " + res.message);
