@@ -1,5 +1,6 @@
 /*==================================================
    RT DIGITAL - MODUL PENAGIHAN KONEKSI DATABASES REAL
+   (UPGRADE: INFOGRAFIS TUNGGAKAN & PAY MULTI-MONTHS)
 ==================================================*/
 let globalTagihan = [];
 let tabAktifPenagihan = "penagihan-wa";
@@ -53,12 +54,14 @@ function renderSubTabPenagihan() {
     if(tabAktifPenagihan === "pembayaran" && tBayar) { tBayar.style.background="white"; tBayar.style.color="#0f766e"; }
     if(tabAktifPenagihan === "atur-tagihan" && tAtur) { tAtur.style.background="white"; tAtur.style.color="#0f766e"; }
 
+    // TAB 1: DAFTAR TUNGGAKAN & BROADCAST WA
     if (tabAktifPenagihan === "penagihan-wa") {
         wadah.innerHTML = globalTagihan.map(warga => `
             <div class="card" style="padding:15px; background:white; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <h4 style="margin:0;">Blok ${warga.blok} - ${warga.nama}</h4>
-                    <p style="margin:4px 0; font-size:0.75rem; color:#64748b;">📝 Memo: ${warga.catatan || 'Tidak ada catatan'}</p>
+                    <span style="background:#fef2f2; color:#dc2626; font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:bold;">Tunggakan: ${warga.status.toUpperCase()}</span>
+                    <p style="margin:4px 0 0 0; font-size:0.75rem; color:#64748b;">Memo: ${warga.catatan || 'Tidak ada catatan'}</p>
                 </div>
                 <div style="display:flex; gap:5px;">
                     <button onclick="simpanMemoDatabase(${warga.id_row}, '${warga.catatan}')" style="padding:6px; background:#e2e8f0; border:none; border-radius:6px; cursor:pointer;">📝 Memo</button>
@@ -68,18 +71,53 @@ function renderSubTabPenagihan() {
         `).join('');
     }
 
+    // TAB 2: PROSES INPUT KAS PEMBAYARAN (MULTI-MONTHS INTEGRATION)
     if (tabAktifPenagihan === "pembayaran") {
+        if (globalTagihan.length === 0) {
+            wadah.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">🎉 Semua warga sudah lunas!</div>`;
+            return;
+        }
+
         wadah.innerHTML = `
-            <h4 style="margin:0 0 10px 0;">💰 Input Konfirmasi Setoran Warga</h4>
-            ${globalTagihan.map(warga => `
-                <div class="card" style="padding:12px; background:white; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <span>Blok ${warga.blok} (${warga.nama})</span>
-                    <button onclick="prosesSetorIuranServer('${warga.blok}')" style="padding:5px 12px; background:#0f766e; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.75rem;">💰 Lunasi</button>
+            <div style="margin-bottom:12px;">
+                <h4 style="margin:0 0 4px 0; color:#1e293b;">💰 Input Setoran & Konfirmasi Iuran</h4>
+                <p style="margin:0; color:#64748b; font-size:0.75rem;">Pilih durasi bulan iuran yang dibayar (bisa langsung bayar 12 bulan / 1 tahun).</p>
+            </div>
+            ${globalTagihan.map((warga, idx) => `
+                <div class="card" style="padding:15px; background:white; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:10px; display:flex; flex-direction:column; gap:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h4 style="margin:0; color:#1e293b; font-size:0.9rem;">Blok ${warga.blok} - ${warga.nama}</h4>
+                            <small style="color:#64748b; font-size:0.75rem;">Status Tunggakan: <b style="color:#dc2626;">${warga.status}</b></small>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; align-items:center; gap:12px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+                        <div style="flex:1;">
+                            <label style="font-size:0.68rem; color:#64748b; display:block; margin-bottom:3px; font-weight:bold;">DURASI BAYAR:</label>
+                            <select id="pilih-bulan-${idx}" onchange="updateEstimasiTotal(${idx})" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; background:white;">
+                                <option value="1">1 Bulan (Normal)</option>
+                                <option value="2">2 Bulan</option>
+                                <option value="3">3 Bulan</option>
+                                <option value="6">6 Bulan (Setengah Tahun)</option>
+                                <option value="12">12 Bulan (1 Tahun Penuh)</option>
+                            </select>
+                        </div>
+                        <div style="text-align:right;">
+                            <span style="font-size:0.68rem; color:#64748b; display:block; font-weight:bold;">TOTAL TAGIHAN:</span>
+                            <b id="total-bayar-${idx}" style="color:#0f766e; font-size:0.95rem;">Rp 50.000</b>
+                        </div>
+                    </div>
+
+                    <button onclick="prosesSetorIuranServerBanyakBulan('${warga.blok}', ${idx})" style="width:100%; padding:10px; background:#0f766e; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.8rem;">
+                        💰 Konfirmasi & Simpan Setoran
+                    </button>
                 </div>
             `).join('')}
         `;
     }
 
+    // TAB 3: ADMINISTRASI
     if (tabAktifPenagihan === "atur-tagihan") {
         if(roleBersih !== 'admin' && roleBersih !== 'bendahara') {
             wadah.innerHTML = "🔒 Menu Khusus Admin / Bendahara.";
@@ -95,16 +133,42 @@ function renderSubTabPenagihan() {
     }
 }
 
+window.updateEstimasiTotal = function(idx) {
+    let selectEl = document.getElementById(`pilih-bulan-${idx}`);
+    let totalEl = document.getElementById(`total-bayar-${idx}`);
+    if(!selectEl || !totalEl) return;
+    let bulan = parseInt(selectEl.value);
+    let total = 50000 * bulan;
+    totalEl.innerText = "Rp " + total.toLocaleString('id-ID');
+};
+
+window.prosesSetorIuranServerBanyakBulan = async function(blok, idx) {
+    let selectEl = document.getElementById(`pilih-bulan-${idx}`);
+    if(!selectEl) return;
+    let bulan = parseInt(selectEl.value);
+    let totalNominal = 50000 * bulan;
+
+    if(confirm(`Konfirmasi pelunasan Blok ${blok} sebanyak ${bulan} Bulan dengan total Rp ${totalNominal.toLocaleString('id-ID')}?`)) {
+        let res = await api("konfirmasiPembayaran", { 
+            blok: blok, 
+            nominal: totalNominal, 
+            bulan: bulan,
+            petugas: myName || "Bendahara" 
+        });
+        if(res.status === "success") { 
+            alert(`✅ Sukses! Pembayaran ${bulan} Bulan berhasil dicatat permanen ke Kas.`); 
+            penagihanPage(); 
+        } else {
+            alert("❌ Gagal: " + res.message);
+        }
+    }
+};
+
 window.simpanMemoDatabase = async function(idRow, oldCatatan) {
     let txt = prompt("Tulis Catatan Memo Warga Baru:", oldCatatan);
     if (txt === null) return;
     let res = await api("updateCatatan", { id_row: idRow, catatan: txt });
     if(res.status === "success") { alert("Memo tersimpan permanen di spreadsheet!"); penagihanPage(); }
-};
-
-window.prosesSetorIuranServer = async function(blok) {
-    let res = await api("konfirmasiPembayaran", { blok: blok, nominal: 50000, petugas: myName || "Bendahara" });
-    if(res.status === "success") { alert("Pembayaran Berhasil! Otomatis tercatat di Kas Masuk."); penagihanPage(); }
 };
 
 window.triggerGenerateTagihanMassal = async function() {
