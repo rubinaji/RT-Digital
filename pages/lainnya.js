@@ -3,7 +3,7 @@
 ==================================================*/
 
 function LainnyaPage() {
-    // 🔒 Filter Hak Akses: Sembunyikan Data User & Pengaturan dari Bendahara
+    // 🔒 Filter Hak Akses: Sembunyikan Data User & Pengaturan dari selain Admin
     let menuDataUser = '';
     let menuPengaturan = '';
 
@@ -33,7 +33,9 @@ function LainnyaPage() {
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 
-                ${menuDataUser} <div class="card" onclick="navigate('pengumuman')" style="text-align: center; padding: 20px 15px; cursor: pointer; transition: 0.2s; margin-bottom: 0;">
+                ${menuDataUser}
+
+                <div class="card" onclick="navigate('pengumuman')" style="text-align: center; padding: 20px 15px; cursor: pointer; transition: 0.2s; margin-bottom: 0;">
                     <h1 style="margin: 0; font-size: 2.5rem;">📢</h1>
                     <h4 style="margin: 10px 0 5px 0; color: #1e293b;">Pengumuman</h4>
                     <p style="margin: 0; font-size: 0.8rem; color: #64748b;">Info RT & Mading</p>
@@ -45,9 +47,11 @@ function LainnyaPage() {
                     <p style="margin: 0; font-size: 0.8rem; color: #64748b;">Rekap kas & warga</p>
                 </div>
 
-                ${menuPengaturan} </div>
+                ${menuPengaturan}
+
+            </div>
             
-            <button onclick="alert('Keluar dari aplikasi...')" style="width: 100%; padding: 15px; background: #f1f5f9; color: #dc2626; border: 1px solid #cbd5e1; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 30px;">
+            <button onclick="prosesLogout()" style="width: 100%; padding: 15px; background: #fef2f2; color: #dc2626; border: 1px solid #f87171; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 30px; transition: 0.3s;">
                 🚪 Keluar (Logout)
             </button>
         </div>
