@@ -1,5 +1,5 @@
 /*==================================================
-   RT DIGITAL - MODUL DATA RUMAH (DENGAN EDIT)
+   RT DIGITAL - MODUL DATA RUMAH (SESUAI SOP BENDAHARA)
 ==================================================*/
 
 let dataRumah = [
@@ -8,7 +8,7 @@ let dataRumah = [
     { blok: "Blok A-03", penghuni: "Ibu Siti Aminah", status: "Dikontrak" }
 ];
 
-let editIndexRumah = -1; // Penanda: -1 berarti Tambah Baru, angka lain berarti Edit
+let editIndexRumah = -1;
 
 function RumahPage() {
     setTimeout(loadRumahData, 50);
@@ -56,8 +56,8 @@ function loadRumahData() {
     
     if (!listContainer) return;
 
-    // 🔒 Tombol Tambah hanya untuk Admin
-    if (currentRole === 'admin') {
+    // 🔒 1. TOMBOL TAMBAH: Dibuka untuk Admin dan Bendahara
+    if (currentRole === 'admin' || currentRole === 'bendahara') {
         wadahBtn.innerHTML = `<button id="btn-tambah-rumah" style="padding: 8px 15px; background: #0f766e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">+ Tambah</button>`;
         
         document.getElementById("btn-tambah-rumah").onclick = () => {
@@ -82,10 +82,8 @@ function loadRumahData() {
         if (!blok || !penghuni) return alert("Blok dan Nama Penghuni harus diisi!");
 
         if (editIndexRumah === -1) {
-            // Mode Tambah
             dataRumah.push({ blok, penghuni, status });
         } else {
-            // Mode Edit
             dataRumah[editIndexRumah] = { blok, penghuni, status };
         }
 
@@ -100,13 +98,19 @@ function loadRumahData() {
             let badgeColor = item.status === 'Kosong' ? '#dc2626' : (item.status === 'Dikontrak' ? '#eab308' : '#16a34a');
             let badgeBg = item.status === 'Kosong' ? '#fef2f2' : (item.status === 'Dikontrak' ? '#fefce8' : '#dcfce7');
 
-            // 🔒 Tombol Edit & Hapus hanya untuk Admin
+            // 🔒 2. CEK PERAN UNTUK TOMBOL EDIT & HAPUS
             let actionButtons = ``;
-            if (currentRole === 'admin') {
+            if (currentRole === 'admin' || currentRole === 'bendahara') {
+                
+                // Bendahara BISA edit, tapi TIDAK BISA hapus. Tombol hapus cuma buat Admin.
+                let btnHapus = (currentRole === 'admin') 
+                    ? `<button onclick="hapusRumah(${index})" style="background: transparent; border: none; cursor: pointer; font-size: 1.2rem; color: #ef4444;" title="Hapus">🗑️</button>` 
+                    : ``;
+
                 actionButtons = `
                     <div style="display: flex; gap: 10px;">
                         <button onclick="editRumah(${index})" style="background: transparent; border: none; cursor: pointer; font-size: 1.2rem;" title="Edit Data">✏️</button>
-                        <button onclick="hapusRumah(${index})" style="background: transparent; border: none; cursor: pointer; font-size: 1.2rem; color: #ef4444;" title="Hapus">🗑️</button>
+                        ${btnHapus}
                     </div>
                 `;
             }
@@ -124,7 +128,6 @@ function loadRumahData() {
         });
     }
 
-    // Fungsi Trigger Edit
     window.editRumah = function(index) {
         editIndexRumah = index;
         document.getElementById("modal-title-rumah").innerText = "Edit Data Rumah";
@@ -134,8 +137,10 @@ function loadRumahData() {
         modal.style.display = "flex";
     }
 
-    // Fungsi Hapus
+    // Gembok keamanan ganda: Pastikan fungsi hapus menolak akses jika dipaksa selain admin
     window.hapusRumah = function(index) {
+        if (currentRole !== 'admin') return alert("Hanya Admin yang berhak menghapus data!");
+        
         if(confirm("Yakin ingin menghapus data rumah ini?")) {
             dataRumah.splice(index, 1);
             render();
