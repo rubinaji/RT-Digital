@@ -25,7 +25,7 @@ function navigate(pageName) {
       contentBody.innerHTML = typeof DashboardPage === "function" ? DashboardPage() : "<p>Modul Dashboard sedang disiapkan...</p>";
       break;
     case "rumah":
-      contentBody.innerHTML = typeof WargaPage === "function" ? WargaPage() : "<p>Modul Data Rumah sedang disiapkan...</p>";
+      contentBody.innerHTML = typeof RumahPage === "function" ? RumahPage() : "<p>Modul Data Rumah sedang disiapkan...</p>";
       break;
     case "keuangan":
       contentBody.innerHTML = "<p>Modul Keuangan sedang disiapkan...</p>";
