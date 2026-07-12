@@ -44,6 +44,9 @@ function navigate(pageName) {
           case "laporan": 
             contentBody.innerHTML = typeof LaporanPage === "function" ? LaporanPage() : "<p>Modul disiapkan...</p>";
             break;
+          case "pengaturan": 
+            contentBody.innerHTML = typeof PengaturanPage === "function" ? PengaturanPage() : "<p>Modul disiapkan...</p>";
+            break;
         default:
             contentBody.innerHTML = "<p style='padding: 20px;'>Halaman tidak ditemukan.</p>";
     }
