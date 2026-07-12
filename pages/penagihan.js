@@ -148,7 +148,7 @@ function loadPenagihanData() {
         window.renderListPenagihan();
     }
 
-    window.renderListPenagihan = function() {
+   window.renderListPenagihan = function() {
         listContainer.innerHTML = "";
         
         let filteredData = dataTagihan.filter(item => {
@@ -157,6 +157,18 @@ function loadPenagihanData() {
             let cocokRW = (queryRW === "Semua") ? true : (item.rw === queryRW);
             return cocokTeks && cocokRT && cocokRW;
         });
+
+        // 🔒 GEMBOK PRIVASI WARGA: Kalau yang login warga, HAPUS data tetangga dari layar!
+        if (currentRole === 'warga') {
+            filteredData = filteredData.filter(item => item.blok.toLowerCase() === (window.myBlok || "").toLowerCase());
+        }
+
+        if (filteredData.length === 0) {
+            listContainer.innerHTML = `<p style="text-align:center; color:#94a3b8; margin-top: 30px;">Data tidak ditemukan.</p>`;
+            return;
+        }
+        
+        // ... (sisanya biarkan sama seperti sebelumnya) ...
 
         if (filteredData.length === 0) {
             listContainer.innerHTML = `<p style="text-align:center; color:#94a3b8; margin-top: 30px;">Data tidak ditemukan.</p>`;
