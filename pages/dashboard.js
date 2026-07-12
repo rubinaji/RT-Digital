@@ -62,7 +62,7 @@ function DashboardPage() {
                 </button>
             </div>
         `;
-    } // Jika Warga, quickMenuHTML tetap kosong (tidak tampil apa-apa)
+    } // Jika Warga, quickMenuHTML tetap kosong
 
     const formatRp = (angka) => {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
@@ -81,7 +81,7 @@ function DashboardPage() {
                 <h1 style="margin: 10px 0; font-size: 2.2rem;">${formatRp(totalSaldo)}</h1>
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem; opacity: 0.9; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
                     <span><b>↑</b> Masuk: ${formatRp(totalPemasukan)}</span>
-                    <span><b>↓</b> Keluar: ${formatRp(totalPengelimatan || totalPengeluaran)}</span>
+                    <span><b>↓</b> Keluar: ${formatRp(totalPengeluaran)}</span>
                 </div>
             </div>
 
