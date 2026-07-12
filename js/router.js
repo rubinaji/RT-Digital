@@ -43,16 +43,23 @@ function navigate(pageName) {
     updateActiveNav(pageName);
 }
 
+// FUNGSI UPDATE INDIKATOR MENU BAWAH (SINKRONISASI)
 function updateActiveNav(pageName) {
     const navLinks = document.querySelectorAll(".bottom-nav a");
+    if (!navLinks) return;
+
     navLinks.forEach(link => {
-        link.style.opacity = "0.6";
+        // 1. Reset semua menu menjadi pudar (Abu-abu / Tidak Aktif)
+        link.style.opacity = "0.5";
+        link.style.color = "var(--text-muted, #64748b)";
         link.style.borderBottom = "none";
-        link.style.paddingBottom = "4px";
         
-        if (link.getAttribute("onclick") && link.getAttribute("onclick").includes(pageName)) {
+        // 2. Cari menu yang cocok persis dengan halaman yang sedang dibuka
+        if (link.getAttribute("onclick") && link.getAttribute("onclick").includes(`Maps('${pageName}')`)) {
+            // Beri warna menyala (Hijau / Aktif)
             link.style.opacity = "1";
-            link.style.borderBottom = "3px solid #0f766e";
+            link.style.color = "var(--primary, #0f766e)";
+            link.style.borderBottom = "3px solid var(--primary, #0f766e)";
         }
     });
 }
